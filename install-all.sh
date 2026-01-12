@@ -9,9 +9,12 @@
 ./install-postgresql.sh
 ./install-ghostty.sh
 ./install-tmux.sh
+./install-github-desktop.sh
+
 ./install-stow.sh
 ./install-dotfiles.sh
 ./install-hyprland-overrides.sh
-./install-github-desktop.sh
-
 ./set-shell.sh
+
+./install-theme.sh
+./install-waybar-theme.sh
