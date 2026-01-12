@@ -10,6 +10,11 @@
 ./install-ghostty.sh
 ./install-tmux.sh
 ./install-github-desktop.sh
+./install-claude-code.sh
+./install-warp-terminal.sh
+./install-claude-desktop.sh
+./install-kiro-ide.sh
+./install-kiro-cli.sh
 
 ./install-stow.sh
 ./install-dotfiles.sh
@@ -17,4 +22,4 @@
 ./set-shell.sh
 
 ./install-theme.sh
-./install-waybar-theme.sh
+
