@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ORIGINAL_DIR=$(pwd)
-REPO_URL="https://github.com/typecraft-dev/dotfiles"
+REPO_URL="https://github.com/avdrav1/dotfiles"
 REPO_NAME="dotfiles"
 
 is_stow_installed() {
