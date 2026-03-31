@@ -11,12 +11,12 @@ fi
 # Ensure warpdotdev repo exists in pacman.conf
 if ! grep -q "^\[warpdotdev\]" /etc/pacman.conf; then
   echo "Adding Warp pacman repository to /etc/pacman.conf..."
-  sudo sh -c "echo -e '\n[warpdotdev]\nServer = https://releases.warp.dev/linux/pacman/$repo/$arch' >> /etc/pacman.conf"
+  sudo sh -c 'printf "\n[warpdotdev]\nServer = https://releases.warp.dev/linux/pacman/\$repo/\$arch\n" >> /etc/pacman.conf'
 fi
 
-# Import and sign Warp repository key (ignore failure if already present)
-sudo pacman-key -r "[email protected]" || true
-sudo pacman-key --lsign-key "[email protected]" || true
+# Import and locally sign Warp's package-signing key
+sudo pacman-key -r 19A1E427461B1795F73F629631F4254AFE49E02E
+sudo pacman-key --lsign-key 19A1E427461B1795F73F629631F4254AFE49E02E
 
 # Install warp-terminal via pacman
 sudo pacman -Sy --noconfirm --needed warp-terminal
