@@ -25,7 +25,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.config/waybar/config.jsonc ~/.config/waybar/style.css ~/.local/bin/audio-output-cycle
+  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.config/waybar/config.jsonc ~/.config/waybar/style.css ~/.config/waybar/scripts ~/.local/bin/audio-output-cycle
 
   cd "$REPO_NAME"
   stow zshrc
