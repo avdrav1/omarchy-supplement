@@ -2,25 +2,19 @@
 
 set -euo pipefail
 
-# Install Omarchy themes
-omarchy-theme-install https://github.com/OldJobobo/omarchy-miasma-theme
+# Install Quickshell Rise bar theme
+# https://github.com/HANCORE-linux/quickshell-dots
 
-# Sync Miasma waybar-theme config + style into waybar dotfiles and live config
-MIASMA_WAYBAR_THEME_DIR="$HOME/.config/omarchy/themes/miasma/waybar-theme"
+echo "Installing Quickshell Rise bar..."
 
-if [ -d "$MIASMA_WAYBAR_THEME_DIR" ]; then
-  DOTFILES_WAYBAR_DIR="$HOME/dotfiles/waybar/.config/waybar"
-  LIVE_WAYBAR_DIR="$HOME/.config/waybar"
+# Run the installer non-interactively with V1 version and Claude backend
+curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh | bash -s V1 --claude-backend
 
-  mkdir -p "$DOTFILES_WAYBAR_DIR" "$LIVE_WAYBAR_DIR"
+# Install the autostart hook so Quickshell starts on boot
+HOOK_DIR="$HOME/.config/omarchy/hooks/post-boot.d"
+mkdir -p "$HOOK_DIR"
+curl -fsSL -o "$HOOK_DIR/quickshell-rise" \
+  https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/contrib/post-boot.d/quickshell-rise
+chmod +x "$HOOK_DIR/quickshell-rise"
 
-  # Copy config.jsonc and style.css from the Miasma waybar-theme
-  for f in config.jsonc style.css; do
-    if [ -f "$MIASMA_WAYBAR_THEME_DIR/$f" ]; then
-      cp "$MIASMA_WAYBAR_THEME_DIR/$f" "$DOTFILES_WAYBAR_DIR/$f"
-      cp "$MIASMA_WAYBAR_THEME_DIR/$f" "$LIVE_WAYBAR_DIR/$f"
-    fi
-  done
-fi
-
-omarchy-restart-waybar
+echo "Quickshell Rise installed with autostart hook"
