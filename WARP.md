@@ -41,9 +41,9 @@ Each `install-*.sh` script is idempotent-ish and targets a single concern. Commo
   - `./install-tmux.sh`, `./install-github-desktop.sh`, `./install-claude-code.sh`, `./install-claude-desktop.sh`, `./install-kiro-ide.sh`, `./install-kiro-cli.sh` – install various development tools and editors (check each script for specifics; all are Arch/AUR-focused and use `yay`/`pacman`).
 
 - Dotfiles and desktop/theme integration
-  - `./install-dotfiles.sh` – clone `https://github.com/avdrav1/dotfiles` into `~/dotfiles` if missing, remove a set of existing config directories, and `stow` profiles for Zsh, Ghostty, tmux, Neovim, and Starship.
+  - `./install-dotfiles.sh` – clone `https://github.com/avdrav1/dotfiles` into `~/dotfiles` if missing, remove a set of existing config directories, and `stow` profiles for Zsh, Ghostty, tmux, Neovim, Starship, mpd, and rmpc (waybar excluded since Quickshell Rise replaces it).
   - `./install-hyprland-overrides.sh` – ensure `~/.config/hypr/hyprland.conf` exists, then append a `source = <repo>/hyprland-overrides.conf` line if it is not already present.
-  - `./install-theme.sh` – install the Omarchy Miasma theme via `omarchy-theme-install`, then copy the theme's Waybar `config.jsonc` and `style.css` into both `~/dotfiles/waybar/.config/waybar` and `~/.config/waybar`, and finally call `omarchy-restart-waybar`.
+  - `./install-theme.sh` – install the Quickshell Rise bar theme from `https://github.com/HANCORE-linux/quickshell-dots` using the official installer with V1 version and Claude usage backend, then set up the post-boot autostart hook.
 
 ### Notes on running and verifying scripts
 
@@ -70,7 +70,7 @@ There are no nested modules or libraries; logic lives directly in the shell scri
 1. Shell and core CLI tooling: Zsh, `mise`, `asdf`, Node.js, Ruby, PostgreSQL.
 2. Graphical tools and terminals: Ghostty, tmux, GitHub Desktop, Claude integrations, Warp terminal, Kiro IDE/CLI.
 3. Configuration layering: install Stow, then dotfiles, then Hyprland overrides.
-4. Final polish: set Zsh as the default shell and apply Omarchy Miasma theme integration.
+4. Final polish: set Zsh as the default shell and install Quickshell Rise bar theme (replaces waybar).
 
 Future modifications to the environment should respect this layering: ensure any new installer script can be run independently, and only then add it to `install-all.sh` in an order that satisfies its dependencies (e.g., after its package manager or runtime is installed).
 
@@ -93,8 +93,9 @@ When adjusting Hyprland behavior, prefer editing `hyprland-overrides.conf` rathe
 
 - System: Arch Linux (scripts rely on `pacman`, `yay`, and `systemctl`).
 - Shell: Bash for script execution; target default shell is Zsh.
-- External Omarchy tooling: `omarchy-theme-install`, `omarchy-restart-waybar`, and `omarchy-launch-webapp` are assumed to be available from the broader Omarchy setup and are not defined in this repo.
-- Dotfiles: expects the `avdrav1/dotfiles` repository layout to remain compatible with the `stow` calls in `install-dotfiles.sh` and the Waybar paths in `install-theme.sh`.
+- External Omarchy tooling: `omarchy-launch-webapp` and other Omarchy commands are assumed to be available from the broader Omarchy setup and are not defined in this repo.
+- Dotfiles: expects the `avdrav1/dotfiles` repository layout to remain compatible with the `stow` calls in `install-dotfiles.sh`.
+- Quickshell Rise: the theme installer fetches from `https://github.com/HANCORE-linux/quickshell-dots` and installs to `~/.config/quickshell/bar`.
 
 ### Other agent rule sources
 
