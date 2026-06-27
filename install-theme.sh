@@ -7,6 +7,10 @@ set -euo pipefail
 
 echo "Installing Quickshell Rise bar..."
 
+# Quickshell Rise needs the quickshell (qs) runtime plus git/jq/curl.
+# quickshell ships in the official 'extra' repo; the rest are usually present.
+yay -S --noconfirm --needed quickshell git jq curl
+
 # Run the installer non-interactively with V1 version and Claude backend
 curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh | bash -s V1 --claude-backend
 
