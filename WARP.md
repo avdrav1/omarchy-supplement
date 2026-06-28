@@ -38,7 +38,9 @@ Each `install-*.sh` script is idempotent-ish and targets a single concern. Commo
 - Applications and terminals
   - `./install-ghostty.sh` – install the Ghostty terminal (see script for exact package details).
   - `./install-warp-terminal.sh` – add the `warpdotdev` pacman repo if missing, import/sign its key, and install `warp-terminal` via `pacman`.
-  - `./install-tmux.sh`, `./install-github-desktop.sh`, `./install-claude-code.sh`, `./install-claude-desktop.sh`, `./install-kiro-ide.sh`, `./install-kiro-cli.sh` – install various development tools and editors (check each script for specifics; all are Arch/AUR-focused and use `yay`/`pacman`).
+  - `./install-tmux.sh`, `./install-github-desktop.sh`, `./install-claude-code.sh`, `./install-kiro-ide.sh`, `./install-kiro-cli.sh` – install various development tools and editors (check each script for specifics; all are Arch/AUR-focused and use `yay`/`pacman`).
+  - `./install-claude-desktop.sh` – install the Cowork-capable Claude Desktop frontend `claude-desktop-bin` from the AUR (replacing the older, archived aaddrick build if present; user config in `~/.config/Claude` is preserved).
+  - `./install-claude-cowork-service.sh` – install `claude-cowork-service` (AUR), the native Linux backend for Claude Desktop's Cowork feature, then enable/start the `claude-cowork` systemd user service. Requires the `claude` CLI from `install-claude-code.sh`.
 
 - Dotfiles and desktop/theme integration
   - `./install-dotfiles.sh` – clone `https://github.com/avdrav1/dotfiles` into `~/dotfiles` if missing, remove a set of existing config directories, and `stow` profiles for Zsh, Ghostty, tmux, Neovim, Starship, mpd, and rmpc (waybar excluded since Quickshell Rise replaces it).
@@ -68,7 +70,7 @@ There are no nested modules or libraries; logic lives directly in the shell scri
 `install-all.sh` wires together the individual installers and encodes their implicit dependencies:
 
 1. Shell and core CLI tooling: Zsh, `mise`, `asdf`, Node.js, Ruby, PostgreSQL.
-2. Graphical tools and terminals: Ghostty, tmux, GitHub Desktop, Claude integrations, Warp terminal, Kiro IDE/CLI.
+2. Graphical tools and terminals: Ghostty, tmux, GitHub Desktop, Claude integrations (Claude Code, Claude Desktop, Cowork service), Warp terminal, Kiro IDE/CLI.
 3. Configuration layering: install Stow, then dotfiles, then Hyprland overrides.
 4. Final polish: set Zsh as the default shell and install Quickshell Rise bar theme (replaces waybar).
 

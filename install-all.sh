@@ -13,6 +13,7 @@
 ./install-claude-code.sh
 ./install-warp-terminal.sh
 ./install-claude-desktop.sh
+./install-claude-cowork-service.sh
 
 ./install-stow.sh
 ./install-dotfiles.sh
