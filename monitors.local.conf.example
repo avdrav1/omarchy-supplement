@@ -1,0 +1,12 @@
+# Template for the per-machine monitor/scale file.
+# install-hyprland-overrides.sh copies this to ~/.config/hypr/monitors.local.conf
+# on a fresh build if that file does not already exist.
+#
+# Set MONSCALE for the machine. Common values:
+#   HiDPI laptop panel (e.g. 3840x2400 13") -> 1.5 or 2
+#   1080p / 1440p / ultrawide               -> 1
+#
+# GDK_SCALE stays at 1 so Wayland fractional scaling drives GTK apps.
+$MONSCALE = 1
+env = GDK_SCALE,1
+monitor = ,preferred,auto,$MONSCALE

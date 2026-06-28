@@ -30,4 +30,12 @@ else
     echo "Source line added successfully"
 fi
 
+# Ensure a per-machine monitor/scale file exists (sourced by the overrides).
+# This file is intentionally NOT tracked in git; set MONSCALE per machine.
+LOCAL_MONITORS="$HOME/.config/hypr/monitors.local.conf"
+if [ ! -f "$LOCAL_MONITORS" ]; then
+    echo "Creating $LOCAL_MONITORS from example (set MONSCALE for this machine)"
+    cp "$SCRIPT_DIR/monitors.local.conf.example" "$LOCAL_MONITORS"
+fi
+
 echo "Hyprland overrides setup complete!"
