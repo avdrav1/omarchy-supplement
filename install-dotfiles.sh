@@ -33,9 +33,8 @@ if [ $? -eq 0 ]; then
   stow tmux
   stow nvim
   stow starship
-  stow mpd
-  stow rmpc
   # Note: waybar stow removed - using Quickshell Rise bar instead
+  # Note: mpd/rmpc stow removed - music tools not installed
 else
   echo "Failed to clone the repository."
   exit 1
