@@ -2,29 +2,26 @@
 
 set -euo pipefail
 
-# Install Claude Desktop (Cowork-capable frontend) on Arch via the AUR.
+# Install or update Claude Desktop (Cowork-capable frontend) to the LATEST
+# version via the AUR. Safe to re-run from install-all.sh: `yay --needed` is a
+# no-op when already current and rebuilds to the latest AUR version when behind.
 #
 # Uses patrickjaja's actively-maintained binary package, which tracks upstream
 # Claude Desktop releases and supports the Cowork feature. Pair with
 # install-claude-cowork-service.sh for the native Linux Cowork backend.
 # Source: https://github.com/patrickjaja/claude-desktop-bin (AUR: claude-desktop-bin)
 
-if pacman -Qq claude-desktop-bin &>/dev/null; then
-  echo "Claude Desktop (claude-desktop-bin) already installed."
-  echo "Updates arrive via your AUR helper: yay -Syu"
-  exit 0
-fi
-
-# Remove the older, archived aaddrick build if present. It owns
-# /usr/bin/claude-desktop and would file-conflict with claude-desktop-bin.
-# Plain -R keeps user data in ~/.config/Claude (no -n, no -s cascade).
-# Order matters: remove the -debug split package before its parent.
+# One-time migration: remove the older, archived aaddrick build if it is the
+# literal installed package. Match against the installed list with `grep -qx`
+# so we do NOT match claude-desktop-bin's `provides=claude-desktop` alias
+# (matching it would uninstall the package we want). Plain -R keeps user data
+# in ~/.config/Claude. Remove the -debug split package before its parent.
 for pkg in claude-desktop-debug claude-desktop; do
-  if pacman -Qq "$pkg" &>/dev/null; then
+  if pacman -Qq | grep -qx "$pkg"; then
     echo "Removing previous '$pkg' build (archived aaddrick PKGBUILD)..."
     sudo pacman -R --noconfirm "$pkg"
   fi
 done
 
-# Install the Cowork-capable frontend from the AUR.
+# Install if missing, or update to the latest AUR version if behind.
 yay -S --needed --noconfirm claude-desktop-bin

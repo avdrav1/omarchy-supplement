@@ -39,8 +39,8 @@ Each `install-*.sh` script is idempotent-ish and targets a single concern. Commo
   - `./install-ghostty.sh` – install the Ghostty terminal (see script for exact package details).
   - `./install-warp-terminal.sh` – add the `warpdotdev` pacman repo if missing, import/sign its key, and install `warp-terminal` via `pacman`.
   - `./install-tmux.sh`, `./install-github-desktop.sh`, `./install-claude-code.sh`, `./install-kiro-ide.sh`, `./install-kiro-cli.sh` – install various development tools and editors (check each script for specifics; all are Arch/AUR-focused and use `yay`/`pacman`).
-  - `./install-claude-desktop.sh` – install the Cowork-capable Claude Desktop frontend `claude-desktop-bin` from the AUR (replacing the older, archived aaddrick build if present; user config in `~/.config/Claude` is preserved).
-  - `./install-claude-cowork-service.sh` – install `claude-cowork-service` (AUR), the native Linux backend for Claude Desktop's Cowork feature, then enable/start the `claude-cowork` systemd user service. Requires the `claude` CLI from `install-claude-code.sh`.
+  - `./install-claude-desktop.sh` – install or update (to the latest) the Cowork-capable Claude Desktop frontend `claude-desktop-bin` from the AUR via `yay -S --needed` (replacing the older, archived aaddrick build if present; user config in `~/.config/Claude` is preserved).
+  - `./install-claude-cowork-service.sh` – install or update (to the latest) `claude-cowork-service` (AUR), the native Linux backend for Claude Desktop's Cowork feature, then enable/start the `claude-cowork` systemd user service. Requires the `claude` CLI from `install-claude-code.sh`.
 
 - Dotfiles and desktop/theme integration
   - `./install-dotfiles.sh` – clone `https://github.com/avdrav1/dotfiles` into `~/dotfiles` if missing, remove a set of existing config directories, and `stow` profiles for Zsh, Ghostty, tmux, Neovim, Starship, mpd, and rmpc (waybar excluded since Quickshell Rise replaces it).

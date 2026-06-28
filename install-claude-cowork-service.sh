@@ -17,12 +17,9 @@ if ! command -v claude &>/dev/null; then
   echo "Cowork spawns 'claude' for every task; install it first (install-claude-code.sh)."
 fi
 
-# Install the daemon from the AUR (skip if already present; update via yay -Syu).
-if pacman -Qq claude-cowork-service &>/dev/null; then
-  echo "claude-cowork-service already installed."
-else
-  yay -S --needed --noconfirm claude-cowork-service
-fi
+# Install if missing, or update to the latest AUR version if behind.
+# --needed makes this a no-op when already at the latest version.
+yay -S --needed --noconfirm claude-cowork-service
 
 # Enable and start the per-user daemon. Claude Desktop connects to it over a
 # Unix socket. Don't hard-fail provisioning if there's no active user session
