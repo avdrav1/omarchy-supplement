@@ -13,11 +13,6 @@
 ./install-claude-code.sh
 ./install-warp-terminal.sh
 ./install-claude-desktop.sh
-./install-kiro-ide.sh
-./install-kiro-cli.sh
-./install-mpd.sh
-./install-rmpc.sh
-./install-music-tools.sh
 
 ./install-stow.sh
 ./install-dotfiles.sh
