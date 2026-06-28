@@ -8,9 +8,50 @@ set -euo pipefail
 
 echo "Installing Quickshell Rise bar..."
 
-# Quickshell Rise needs the quickshell (qs) runtime plus git/jq/curl.
-# quickshell ships in the official 'extra' repo; the rest are usually present.
-yay -S --noconfirm --needed quickshell git jq curl
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FALLBACK_MIRROR="Server = https://mirror.rackspace.com/archlinux/\$repo/os/\$arch"
+MIRRORLIST=/etc/pacman.d/mirrorlist
+
+# The omarchy stable mirror may lag behind on newer Qt6 package revisions.
+# Add a fallback mirror so pacman can find anything the primary mirror is missing,
+# then remove it afterwards so the system stays on the stable mirror.
+add_fallback_mirror() {
+  if ! grep -qF 'mirror.rackspace.com' "$MIRRORLIST"; then
+    echo "$FALLBACK_MIRROR" | sudo tee -a "$MIRRORLIST" > /dev/null
+  fi
+}
+
+remove_fallback_mirror() {
+  sudo sed -i '/mirror.rackspace.com/d' "$MIRRORLIST"
+}
+
+add_fallback_mirror
+sudo pacman -Sy --noconfirm --needed \
+  git jq curl \
+  qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
+  qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
+  qt6-translations qt6-virtualkeyboard qt6-wayland \
+  kirigami syntax-highlighting 2>/dev/null || \
+yay -S --noconfirm --needed \
+  git jq curl \
+  qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
+  qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
+  qt6-translations qt6-virtualkeyboard qt6-wayland \
+  kirigami syntax-highlighting
+remove_fallback_mirror
+
+# Build and install mainstream-quickshell-git from the stored (patched) PKGBUILD.
+# The patch removes the cpptrace dependency (only used for crash reporting) and
+# passes -DCRASH_HANDLER=OFF to cmake, so the build has no unavailable AUR deps.
+# We force-remove the stock quickshell first since they conflict.
+if pacman -Qi quickshell &>/dev/null; then
+  sudo pacman -Rdd --noconfirm quickshell
+fi
+builddir="$(mktemp -d)"
+cp "$SCRIPT_DIR/quickshell/PKGBUILD" "$builddir/"
+cp "$SCRIPT_DIR/quickshell/quickshell-check.hook" "$builddir/"
+(cd "$builddir" && makepkg -si --noconfirm)
+rm -rf "$builddir"
 
 # Run the installer non-interactively with V1 version and Claude backend
 curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh | bash -s V1 --claude-backend
