@@ -1,0 +1,6 @@
+Placeholder so this directory always contains at least one synced file.
+Prevents Syncthing from proposing a "delete .claude/" whenever the only
+resident file (settings.local.json) is Syncthing-ignored on a peer,
+which would otherwise fail with:
+  "delete dir: directory has been deleted on a remote device but
+   contains ignored files"

@@ -21,6 +21,7 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 ./install-claude-cowork-service.sh
 ./install-snappy-switcher.sh
 ./install-syncthing.sh
+./install-tailscale.sh
 ./install-vivaldi.sh
 
 ./install-stow.sh
