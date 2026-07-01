@@ -1,23 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)",
-      "Bash(lspci -k)",
-      "Bash(grep -iEA3 'vga|3d|display')",
-      "Read(//sys/devices/virtual/dmi/id/**)",
-      "Read(//etc/systemd/**)",
-      "Bash(lsmod)",
-      "Bash(systemctl list-unit-files *)",
-      "Read(//home/av/.config/hypr/**)",
-      "Read(//sys/power/**)",
-      "Read(//proc/**)",
-      "Bash(journalctl -b -1 -n 60 --no-pager)",
-      "Bash(journalctl -b 0 --no-pager)",
-      "Bash(journalctl -b -1 --no-pager)",
-      "Bash(journalctl --list-boots --no-pager)",
-      "Bash(loginctl show-session *)",
-      "Bash(systemd-inhibit --list)",
-      "Bash(sudo tee -a /etc/default/limine)"
+      "Bash(find:*)"
     ],
     "deny": []
   }
