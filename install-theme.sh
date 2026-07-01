@@ -25,15 +25,17 @@ remove_fallback_mirror() {
   sudo sed -i '/mirror.rackspace.com/d' "$MIRRORLIST"
 }
 
+# bluez-utils provides `bluetoothctl`, which the Quickshell Rise bar's Bluetooth
+# widget shells out to for power state and connected-device count.
 add_fallback_mirror
 sudo pacman -Sy --noconfirm --needed \
-  git jq curl \
+  git jq curl bluez-utils \
   qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
   qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
   qt6-translations qt6-virtualkeyboard qt6-wayland \
   kirigami syntax-highlighting 2>/dev/null || \
 yay -S --noconfirm --needed \
-  git jq curl \
+  git jq curl bluez-utils \
   qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
   qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
   qt6-translations qt6-virtualkeyboard qt6-wayland \
