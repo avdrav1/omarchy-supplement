@@ -34,3 +34,38 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
 ./install-theme.sh
 
+# ── Manual steps ─────────────────────────────────────────────────────────────
+# Everything above is automated; the items below need a human (interactive
+# sign-ins, session restart, per-machine values). The individual installers
+# print these too, but they scroll away, so summarize them here at the end.
+cat <<'EOF'
+
+============================================================
+  Manual steps to finish setup
+============================================================
+
+1. Log out and back in (or reboot) to apply session changes:
+   - zsh becomes your default shell (chsh).
+   - Quickshell Rise bar starts via the post-boot autostart hook.
+   - Open terminals/aerc pick up the new $EDITOR (fresh) and mise on PATH.
+
+2. Display scale (per machine):
+   - Edit hosts/<hostname>.conf and set $MONSCALE (e.g. 1.5 HiDPI, 1 native).
+   - Apply + persist:  hyprctl reload  then commit hosts/<hostname>.conf
+
+3. Sign in to apps (no automated auth):
+   - Claude Code CLI:  run `claude` and authenticate.
+   - Claude Desktop, GitHub Desktop, Warp:  sign in on first launch.
+   - Vivaldi:  optional Vivaldi Sync; re-add Mail/Calendar accounts per machine.
+
+4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
+
+5. Gmail / aerc (OAuth2, one-time per machine):
+   - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
+     screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
+   - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
+   - oama authorize google <addr>  (per account), then `mbsync -a` and open aerc.
+
+============================================================
+EOF
+

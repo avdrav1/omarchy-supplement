@@ -44,7 +44,11 @@ remove_fallback_mirror
 # The patch removes the cpptrace dependency (only used for crash reporting) and
 # passes -DCRASH_HANDLER=OFF to cmake, so the build has no unavailable AUR deps.
 # We force-remove the stock quickshell first since they conflict.
-if pacman -Qi quickshell &>/dev/null; then
+# Match the exact installed package name: pacman -Qi resolves "provides", so it
+# would report our own mainstream-quickshell-git (Provides: quickshell) as a
+# match, but pacman -R can't resolve provides and would fail with
+# "target not found: quickshell" on re-runs. Grep the exact name instead.
+if pacman -Qq | grep -qx quickshell; then
   sudo pacman -Rdd --noconfirm quickshell
 fi
 builddir="$(mktemp -d)"
