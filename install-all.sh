@@ -19,10 +19,16 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 ./install-warp-terminal.sh
 ./install-claude-desktop.sh
 ./install-claude-cowork-service.sh
+./install-snappy-switcher.sh
+./install-syncthing.sh
+./install-vivaldi.sh
 
 ./install-stow.sh
 ./install-dotfiles.sh
 ./install-hyprland-overrides.sh
+./install-editor.sh
+# After dotfiles stow so mbsync.timer exists before the installer enables it.
+./install-aerc-mail.sh
 ./set-shell.sh
 
 ./install-theme.sh

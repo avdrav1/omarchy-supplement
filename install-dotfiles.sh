@@ -25,7 +25,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle
+  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/snappy-switcher/config.ini ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc
 
   cd "$REPO_NAME"
   stow zshrc
@@ -33,6 +33,8 @@ if [ $? -eq 0 ]; then
   stow tmux
   stow nvim
   stow starship
+  stow snappy-switcher
+  stow aerc-mail
   # Note: waybar stow removed - using Quickshell Rise bar instead
   # Note: mpd/rmpc stow removed - music tools not installed
 else

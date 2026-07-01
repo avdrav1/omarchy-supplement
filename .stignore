@@ -1,0 +1,12 @@
+# Syncthing ignore rules.
+# Applied locally by each device that has this folder configured. Committed to
+# git so all machines share the same rules regardless of who syncs what.
+#
+# .git/ is excluded on purpose: git commit refs (HEAD, refs/heads/*, index) get
+# rewritten frequently and Syncthing has no idea how to reconcile two devices
+# that committed independently — it creates .sync-conflict files on refs, which
+# git cannot recover from cleanly. Also, `git gc` can delete loose objects that
+# a peer still references. Use the GitHub remote for history propagation.
+
+/.git
+/.claude/settings.local.json
