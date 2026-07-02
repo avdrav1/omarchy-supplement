@@ -25,7 +25,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/snappy-switcher/config.ini ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc
+  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc
 
   cd "$REPO_NAME"
   stow zshrc
@@ -33,6 +33,11 @@ if [ $? -eq 0 ]; then
   stow tmux
   stow nvim
   stow starship
+  # snappy-switcher's config dir gets folded into a single stow symlink, so
+  # removing ~/.config/snappy-switcher/config.ini in the cleanup above would
+  # delete the tracked file *through* that symlink, wiping it from the dotfiles
+  # repo. Only clear a real (app-generated) dir here; never touch the symlink.
+  [ -L ~/.config/snappy-switcher ] || rm -rf ~/.config/snappy-switcher
   stow snappy-switcher
   stow aerc-mail
   # Note: waybar stow removed - using Quickshell Rise bar instead
