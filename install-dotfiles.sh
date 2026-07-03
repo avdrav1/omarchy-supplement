@@ -25,7 +25,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc
+  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json
 
   cd "$REPO_NAME"
   stow zshrc
@@ -40,6 +40,12 @@ if [ $? -eq 0 ]; then
   [ -L ~/.config/snappy-switcher ] || rm -rf ~/.config/snappy-switcher
   stow snappy-switcher
   stow aerc-mail
+  # Ensure VSCode's config dir exists as a real dir first so stow symlinks only
+  # the individual files (settings.json, keybindings.json). Otherwise stow would
+  # fold the whole ~/.config/Code into a single symlink and VSCode's runtime
+  # state (globalStorage, History, workspaceStorage) would land in the repo.
+  mkdir -p ~/.config/Code/User
+  stow vscode
   # Note: waybar stow removed - using Quickshell Rise bar instead
   # Note: mpd/rmpc stow removed - music tools not installed
 else

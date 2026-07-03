@@ -23,6 +23,9 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 ./install-syncthing.sh
 ./install-tailscale.sh
 ./install-vivaldi.sh
+./install-vscode.sh
+./install-obsidian.sh
+./install-slack.sh
 
 ./install-stow.sh
 ./install-dotfiles.sh
@@ -55,7 +58,7 @@ cat <<'EOF'
 
 3. Sign in to apps (no automated auth):
    - Claude Code CLI:  run `claude` and authenticate.
-   - Claude Desktop, GitHub Desktop, Warp:  sign in on first launch.
+   - Claude Desktop, GitHub Desktop, Warp, Slack:  sign in on first launch.
    - Vivaldi:  optional Vivaldi Sync; re-add Mail/Calendar accounts per machine.
 
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
