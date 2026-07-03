@@ -90,3 +90,16 @@ else
 fi
 
 echo "Dos-Moos theme applied"
+
+# snappy-switcher only reads its config.ini at daemon startup, so a running
+# instance won't pick up the themed (Dos-Moos) config that ships via the dotfiles
+# stow. Restart it here -- after the theme is applied -- so the switcher matches
+# the rest of the desktop. Guarded on an active Hyprland session and the binary
+# being installed, and kept non-fatal so theming never breaks here.
+if command -v snappy-switcher >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+  echo "Restarting snappy-switcher to apply its themed config..."
+  snappy-switcher quit >/dev/null 2>&1 || true
+  pkill -f 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+  sleep 1
+  hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+fi
