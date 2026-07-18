@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = hyprland
+
+[Action]
+Description = Checking hyprpm plugins after Hyprland update...
+When = PostTransaction
+Exec = /usr/bin/bash -c 'echo ""; echo "  hyprpm plugins were built against the PREVIOUS Hyprland version and"; echo "  will NOT load until rebuilt. Run this in a terminal (needs sudo):"; echo ""; echo "      hyprpm update && hyprpm reload"; echo ""'

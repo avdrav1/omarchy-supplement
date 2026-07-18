@@ -48,6 +48,7 @@ Each `install-*.sh` script is idempotent-ish and targets a single concern. Commo
 - Dotfiles and desktop/theme integration
   - `./install-dotfiles.sh` – clone `https://github.com/avdrav1/dotfiles` into `~/dotfiles` if missing, remove a set of existing config directories, and `stow` profiles for Zsh, Ghostty, tmux, Neovim, Starship, snappy-switcher, aerc-mail, and VS Code (`vscode` – `mkdir -p ~/.config/Code/User` first so only `settings.json`/`keybindings.json` are symlinked, not the whole `Code` dir). Waybar excluded since Quickshell Rise replaces it.
   - `./install-hyprland-overrides.sh` – ensure `~/.config/hypr/hyprland.conf` exists, then append a `source = <repo>/hyprland-overrides.conf` line if it is not already present.
+  - `./install-hyprland-scroll-overview.sh` – install `hyprland-scroll-overview` (touchpad-scroll workspace overview) as the hyprpm plugin `scrolloverview` from `https://github.com/yayuuu/hyprland-scroll-overview`, enable it, `hyprpm reload` it into a running session, and drop `hypr/hyprpm-plugins.hook` into `/etc/pacman.d/hooks/`. **hyprpm plugins are version-locked to the installed Hyprland**: they are compiled against its headers, so after every Hyprland upgrade the plugin silently stops loading (`SUPER+\`` does nothing; `hyprctl configerrors` reports `Invalid dispatcher, requested "scrolloverview:overview" does not exist`) until `hyprpm update && hyprpm reload` is run. The pacman hook only *prints that reminder* post-upgrade — it cannot do the rebuild, because `hyprpm` elevates via sudo internally to write its root-owned state under `/var/cache/hyprpm/$USER` and a hook has no tty for the prompt. All Hyprland wiring (the `plugin{}` block, `SUPER+grave`, the `scrolloverview` submap, and the `ALT+1..9` `bindu` lines) lives at the **end** of `hyprland-overrides.conf`; nothing for this plugin ships via the dotfiles repo.
   - `./install-theme.sh` – install the Quickshell Rise bar theme from `https://github.com/HANCORE-linux/quickshell-dots` using the official installer with V1 version and Claude usage backend, then set up the post-boot autostart hook.
 
 ### Notes on running and verifying scripts
@@ -93,6 +94,8 @@ Future modifications to the environment should respect this layering: ensure any
 - Tweaks `misc` and `input` blocks, notably keyboard repeat rate/delay and touchpad scroll behavior.
 
 When adjusting Hyprland behavior, prefer editing `hyprland-overrides.conf` rather than the main Hyprland config so that this repository remains the single source of truth for Omarchy-specific overrides.
+
+**Add new binds ABOVE the `scrolloverview` block at the end of `hyprland-overrides.conf`.** That block contains a `submap = scrolloverview` … `submap = reset` pair, and everything between those two lines belongs to the submap. A bind appended after `submap = scrolloverview` but before `submap = reset` is only live while the overview is open, and would appear to "do nothing" globally — with no error from `hyprctl configerrors`.
 
 ### External dependencies and assumptions
 

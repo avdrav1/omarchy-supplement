@@ -30,6 +30,9 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 ./install-stow.sh
 ./install-dotfiles.sh
 ./install-hyprland-overrides.sh
+# After hyprland-overrides so the plugin{} block and binds are already sourced
+# when hyprpm loads the plugin.
+./install-hyprland-scroll-overview.sh
 ./install-editor.sh
 # After dotfiles stow so mbsync.timer exists before the installer enables it.
 ./install-aerc-mail.sh
@@ -63,7 +66,14 @@ cat <<'EOF'
 
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
 
-5. Gmail / aerc (OAuth2, one-time per machine):
+5. Hyprland plugins (hyprpm):  after EVERY Hyprland upgrade, rebuild or the
+   scroll-overview plugin silently stops loading (SUPER+` does nothing and
+   `hyprctl configerrors` shows "Invalid dispatcher"):
+       hyprpm update && hyprpm reload
+   A pacman hook prints this reminder post-upgrade; it can't run the rebuild
+   itself because hyprpm needs an interactive sudo.
+
+6. Gmail / aerc (OAuth2, one-time per machine):
    - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
      screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
    - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
