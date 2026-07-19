@@ -56,8 +56,16 @@ cat <<'EOF'
    - Open terminals/aerc pick up the new $EDITOR (fresh) and mise on PATH.
 
 2. Display scale (per machine):
-   - Edit hosts/<hostname>.conf and set $MONSCALE (e.g. 1.5 HiDPI, 1 native).
-   - Apply + persist:  hyprctl reload  then commit hosts/<hostname>.conf
+   - Omarchy quattro (Lua config, ~/.config/hypr/hyprland.lua present):
+       Edit hypr/lua/hosts/<hostname>.lua and set scale (1.5 HiDPI, 1 native),
+       then re-run ./install-hyprland-overrides.sh and hyprctl reload.
+       The re-run is REQUIRED: it regenerates ~/.config/hypr/monitors.lua, which
+       omarchy-hyprland-monitor-clamshell greps every 2s to reapply the scale.
+       Wait ~5s before checking hyprctl monitors -- that poll can return a
+       stale value immediately after a reload.
+   - Legacy (.conf config):
+       Edit hosts/<hostname>.conf, set $MONSCALE, then hyprctl reload.
+   - Either way, commit the host file.
 
 3. Sign in to apps (no automated auth):
    - Claude Code CLI:  run `claude` and authenticate.
@@ -67,8 +75,10 @@ cat <<'EOF'
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
 
 5. Hyprland plugins (hyprpm):  after EVERY Hyprland upgrade, rebuild or the
-   scroll-overview plugin silently stops loading (SUPER+` does nothing and
-   `hyprctl configerrors` shows "Invalid dispatcher"):
+   scroll-overview plugin silently stops loading -- SUPER+` just does nothing.
+   Under the Lua config there is no error to notice: hypr/lua/scrolloverview.lua
+   no-ops when the plugin is absent (the old .conf setup at least showed
+   "Invalid dispatcher" in `hyprctl configerrors`). To rebuild:
        hyprpm update && hyprpm reload
    A pacman hook prints this reminder post-upgrade; it can't run the rebuild
    itself because hyprpm needs an interactive sudo.

@@ -46,8 +46,18 @@ if [ $? -eq 0 ]; then
   # state (globalStorage, History, workspaceStorage) would land in the repo.
   mkdir -p ~/.config/Code/User
   stow vscode
-  # Note: waybar stow removed - using Quickshell Rise bar instead
-  # Note: mpd/rmpc stow removed - music tools not installed
+  # The dotfiles repo now contains only the packages stowed above. The X11-era
+  # and pre-Omarchy packages (i3, picom, polybar, rofi, wofi, waybar,
+  # xresources, screenlayout, alacritty, kitty, elephant, backgrounds,
+  # dns-health-check) and the music-tool configs (mpd, rmpc) were deleted --
+  # recover them from git history if ever needed.
+  #
+  # Hyprland configs are deliberately NOT here: Omarchy owns ~/.config/hypr,
+  # and this repo's overrides go through install-hyprland-overrides.sh. The old
+  # dotfiles hyprland/hyprlock/hyprpaper/hyprmocha packages were removed because
+  # they still carried a pre-Omarchy hyprland.conf (its own monitor scale, and
+  # `hyprctl keyword` binds that no longer work under the Lua parser), which
+  # made them a trap when debugging display scaling.
 else
   echo "Failed to clone the repository."
   exit 1

@@ -10,10 +10,17 @@
 # until `hyprpm update` rebuilds it. hypr/hyprpm-plugins.hook (installed below)
 # prints a reminder after any Hyprland upgrade.
 #
-# Hyprland wiring (the plugin{} block, the SUPER+grave bind, the scrolloverview
-# submap and the ALT+1..9 bindu lines) lives in hyprland-overrides.conf and is
-# applied by install-hyprland-overrides.sh. Nothing for this plugin ships via
-# the dotfiles repo -- it has no user config file outside the Hyprland config.
+# Hyprland wiring (the plugin config, the SUPER+grave bind, the scrolloverview
+# submap and the ALT+1..9 submap_universal binds) is applied by
+# install-hyprland-overrides.sh, from hypr/lua/scrolloverview.lua on Lua
+# machines or hyprland-overrides.conf on hyprlang ones. Nothing for this plugin
+# ships via the dotfiles repo -- it has no user config file outside Hyprland's.
+#
+# Under the Lua parser the plugin is reached through its Lua namespace
+# (hl.plugin.scrolloverview.*), NOT the scrolloverview:* hyprlang dispatchers --
+# those are unreachable from a Lua config. The Lua module no-ops when the plugin
+# isn't built, so a missing/stale build is silent rather than an error; run this
+# script (and `hyprctl reload`) to bring it back.
 
 set -euo pipefail
 
