@@ -25,7 +25,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json
+  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf
 
   cd "$REPO_NAME"
   stow zshrc
@@ -46,6 +46,16 @@ if [ $? -eq 0 ]; then
   # state (globalStorage, History, workspaceStorage) would land in the repo.
   mkdir -p ~/.config/Code/User
   stow vscode
+  # Only quickphrase.conf is tracked -- it clears the fcitx5 "Quick Phrase"
+  # addon's default Super+grave / Super+semicolon triggers, which collided with
+  # the workspace-overview bind on SUPER+` (hypr/lua/scrolloverview.lua): both
+  # fired on every press. Same folding trap as vscode above -- on a machine
+  # where fcitx5 has never run, ~/.config/fcitx5 doesn't exist and stow would
+  # fold the whole dir into one symlink, dumping fcitx5's runtime state
+  # (profile, cached_layouts) into the repo. Create the real dirs first so only
+  # the single file is linked.
+  mkdir -p ~/.config/fcitx5/conf
+  stow fcitx5
   # The dotfiles repo now contains only the packages stowed above. The X11-era
   # and pre-Omarchy packages (i3, picom, polybar, rofi, wofi, waybar,
   # xresources, screenlayout, alacritty, kitty, elephant, backgrounds,
