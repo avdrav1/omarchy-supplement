@@ -27,6 +27,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_REPO="https://github.com/yayuuu/hyprland-scroll-overview"
 PLUGIN_NAME="scrolloverview"
+PLUGIN_FALLBACK_REV="main"
 
 if ! command -v hyprpm >/dev/null 2>&1; then
   echo "hyprpm not found (ships with Hyprland). Install Hyprland first."
@@ -35,6 +36,18 @@ fi
 
 # hyprpm needs the toolchain to compile the plugin against Hyprland's headers.
 sudo pacman -S --noconfirm --needed base-devel cmake meson ninja cpio git
+
+# Post-upgrade reminder hook, mirroring quickshell/quickshell-check.hook.
+# It only notifies: the rebuild needs an interactive sudo, which a pacman hook
+# has no tty for.
+#
+# Installed BEFORE the hyprpm steps deliberately. Under `set -e` any hyprpm
+# failure aborts the script, and this hook is pure documentation with no
+# dependency on the build succeeding -- installing it afterwards meant a failed
+# run left no reminder behind on top of leaving no plugin.
+echo "Installing pacman hook for post-upgrade plugin checks..."
+sudo mkdir -p /etc/pacman.d/hooks
+sudo cp "$SCRIPT_DIR/hypr/hyprpm-plugins.hook" /etc/pacman.d/hooks/hyprpm-plugins.hook
 
 # NOTE: hyprpm elevates itself via sudo to write its state under
 # /var/cache/hyprpm/$USER (root-owned), so the calls below may prompt for a
@@ -46,7 +59,21 @@ if hyprpm list 2>/dev/null | grep -q "$PLUGIN_NAME"; then
   echo "Plugin $PLUGIN_NAME already added; updating."
   hyprpm update
 else
-  hyprpm add "$PLUGIN_REPO"
+  # hyprpm refuses to add a plugin when upstream's hyprpm.toml carries no commit
+  # pin for the running Hyprland. It bails *before* cloning, so no plugin source
+  # and no .so are produced -- the only trace is a populated headersRoot/ and a
+  # state.toml with no [repos] section. Arch ships Hyprland releases faster than
+  # upstream adds pins, so this is the normal case here rather than an edge one
+  # (e.g. 0.55.4, where upstream's pins stopped at 0.55.3).
+  #
+  # Passing an explicit git rev makes hyprpm ignore commit locks and build that
+  # revision instead. The plugin may genuinely not compile against a newer
+  # Hyprland, in which case this fails loudly at the build step -- which is the
+  # informative failure, unlike the silent one above.
+  hyprpm add "$PLUGIN_REPO" || {
+    echo "No commit pin for the running Hyprland; retrying against $PLUGIN_FALLBACK_REV."
+    hyprpm add "$PLUGIN_REPO" "$PLUGIN_FALLBACK_REV"
+  }
 fi
 
 hyprpm enable "$PLUGIN_NAME"
@@ -57,13 +84,6 @@ hyprpm enable "$PLUGIN_NAME"
 if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
   hyprpm reload -n
 fi
-
-# Post-upgrade reminder hook, mirroring quickshell/quickshell-check.hook.
-# It only notifies: the rebuild needs an interactive sudo, which a pacman hook
-# has no tty for.
-echo "Installing pacman hook for post-upgrade plugin checks..."
-sudo mkdir -p /etc/pacman.d/hooks
-sudo cp "$SCRIPT_DIR/hypr/hyprpm-plugins.hook" /etc/pacman.d/hooks/hyprpm-plugins.hook
 
 echo "hyprland-scroll-overview installation complete."
 echo "Toggle the overview with SUPER+\` (grave)."
