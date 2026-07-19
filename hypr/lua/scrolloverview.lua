@@ -26,35 +26,33 @@
 --   loaded, so everything here is behind the load guard. Unlike the legacy
 --   config, an absent plugin is silent rather than a wall of "Invalid
 --   dispatcher" in `hyprctl configerrors`.
-
--- hyprpm builds into a root-owned cache; the exact path includes the repo
--- directory name, so glob for it rather than hardcoding.
-local function plugin_path(name)
-  local user = os.getenv("USER") or ""
-  local handle = io.popen("ls /var/cache/hyprpm/" .. user .. "/*/" .. name .. ".so 2>/dev/null | head -1")
-  if not handle then
-    return nil
-  end
-
-  local path = handle:read("*l")
-  handle:close()
-
-  return path ~= "" and path or nil
-end
+--
+-- * Do NOT call hl.plugin.load(path) from here. On 0.55.4 it does not merely
+--   fail -- calling it during config evaluation DEADLOCKS the compositor before
+--   it finishes init, so no Wayland socket is ever created, uwsm's
+--   wayland-session-waitenv times out after 30s and SDDM reclaims the session:
+--   a blank screen after login, with only a TTY to recover from. The symptom is
+--   the main thread parked in do_wait rather than do_epoll_wait. It only bites
+--   once hyprpm has actually built the .so, which is why logins keep working
+--   until install-hyprland-scroll-overview.sh is run.
+--
+-- * The only working load path is `hyprpm reload`, hence the start hook below
+--   (the hyprlang tree does the same with `exec-once = hyprpm reload -n`). It
+--   needs no sudo -- the .so in the root-owned cache is world-readable.
 
 local plugin = hl.plugin.scrolloverview
 
 if not plugin then
-  local path = plugin_path("scrolloverview")
-  if path then
-    pcall(hl.plugin.load, path)
-    plugin = hl.plugin.scrolloverview
-  end
-end
-
-if not plugin then
-  -- Not built yet, or not rebuilt since the last Hyprland upgrade.
-  -- Run ./install-hyprland-scroll-overview.sh (needs sudo).
+  -- Startup: plugins load *after* the config is evaluated, so the namespace is
+  -- absent on this pass and every bind below would be skipped. Load the plugins
+  -- and re-evaluate -- on the second pass `plugin` is non-nil and the rest of
+  -- this file registers normally.
+  --
+  -- hl.on("hyprland.start") fires once per session, not on `hyprctl reload`, so
+  -- the nested reload cannot recurse. A manual reload while the plugin is
+  -- genuinely missing (not built, or not rebuilt since the last Hyprland
+  -- upgrade -- run ./install-hyprland-scroll-overview.sh) just returns silently.
+  o.exec_on_start("hyprpm reload -n && hyprctl reload")
   return
 end
 
