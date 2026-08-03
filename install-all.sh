@@ -5,40 +5,57 @@
 # ~/omarchy-supplement/install-all.sh from $HOME).
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
-# Install all packages in order
-./install-zsh.sh
-./install-mise.sh
-./install-asdf.sh
-./install-nodejs.sh
-./install-ruby.sh
-./install-postgresql.sh
-./install-ghostty.sh
-./install-tmux.sh
-./install-github-desktop.sh
-./install-claude-code.sh
-./install-warp-terminal.sh
-./install-claude-desktop.sh
-./install-claude-cowork-service.sh
-./install-snappy-switcher.sh
-./install-syncthing.sh
-./install-tailscale.sh
-./install-vivaldi.sh
-./install-vscode.sh
-./install-obsidian.sh
-./install-slack.sh
+# Individual installers are intentionally non-fatal -- one broken installer
+# shouldn't abort the whole provision. But a bare `./install-foo.sh` also makes
+# a failure invisible: the run keeps going and still prints the manual-steps
+# summary below, so it reads as success. Record failures and report them at the
+# end instead.
+FAILED=()
+run() {
+  local status=0
+  # Capture the status directly -- inside `if ! "$@"` the `!` has already
+  # rewritten $? to 0, so reading it in the branch always reports success.
+  "$@" || status=$?
+  if ((status != 0)); then
+    echo "!! FAILED: $* (exit $status)" >&2
+    FAILED+=("$*")
+  fi
+}
 
-./install-stow.sh
-./install-dotfiles.sh
-./install-hyprland-overrides.sh
+# Install all packages in order
+run ./install-zsh.sh
+run ./install-mise.sh
+run ./install-asdf.sh
+run ./install-nodejs.sh
+run ./install-ruby.sh
+run ./install-postgresql.sh
+run ./install-ghostty.sh
+run ./install-tmux.sh
+run ./install-github-desktop.sh
+run ./install-claude-code.sh
+run ./install-warp-terminal.sh
+run ./install-claude-desktop.sh
+run ./install-claude-cowork-service.sh
+run ./install-snappy-switcher.sh
+run ./install-syncthing.sh
+run ./install-tailscale.sh
+run ./install-vivaldi.sh
+run ./install-vscode.sh
+run ./install-obsidian.sh
+run ./install-slack.sh
+
+run ./install-stow.sh
+run ./install-dotfiles.sh
+run ./install-hyprland-overrides.sh
 # After hyprland-overrides so the plugin{} block and binds are already sourced
 # when hyprpm loads the plugin.
-./install-hyprland-scroll-overview.sh
-./install-editor.sh
+run ./install-hyprland-scroll-overview.sh
+run ./install-editor.sh
 # After dotfiles stow so mbsync.timer exists before the installer enables it.
-./install-aerc-mail.sh
-./set-shell.sh
+run ./install-aerc-mail.sh
+run ./set-shell.sh
 
-./install-theme.sh
+run ./install-theme.sh
 
 # ── Manual steps ─────────────────────────────────────────────────────────────
 # Everything above is automated; the items below need a human (interactive
@@ -52,7 +69,8 @@ cat <<'EOF'
 
 1. Log out and back in (or reboot) to apply session changes:
    - zsh becomes your default shell (chsh).
-   - Quickshell Rise bar starts via the post-boot autostart hook.
+   - Quickshell Rise bar starts via the post-boot autostart hook
+     (Omarchy 3 only -- skipped on Omarchy 4, which has its own shell).
    - Open terminals/aerc pick up the new $EDITOR (fresh) and mise on PATH.
 
 2. Display scale (per machine):
@@ -91,4 +109,18 @@ cat <<'EOF'
 
 ============================================================
 EOF
+
+# Surface anything that failed. Printed after the manual steps so it is the last
+# thing on screen rather than something that scrolled past an hour ago.
+if ((${#FAILED[@]} > 0)); then
+  echo
+  echo "============================================================"
+  echo "  ${#FAILED[@]} installer(s) FAILED -- setup is incomplete"
+  echo "============================================================"
+  printf '  - %s\n' "${FAILED[@]}"
+  echo
+  echo "  Re-run each one directly to see its error."
+  echo "============================================================"
+  exit 1
+fi
 
