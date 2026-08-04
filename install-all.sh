@@ -35,7 +35,6 @@ run ./install-github-desktop.sh
 run ./install-claude-code.sh
 run ./install-warp-terminal.sh
 run ./install-claude-desktop.sh
-run ./install-claude-cowork-service.sh
 run ./install-snappy-switcher.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh

@@ -2,26 +2,28 @@
 
 set -euo pipefail
 
-# Install or update Claude Desktop (Cowork-capable frontend) to the LATEST
-# version via the AUR. Safe to re-run from install-all.sh: `yay --needed` is a
-# no-op when already current and rebuilds to the latest AUR version when behind.
+# Install or update Claude Desktop to the LATEST version via the AUR. Safe to
+# re-run from install-all.sh: `yay --needed` is a no-op when already current and
+# rebuilds to the latest AUR version when behind.
 #
-# Uses patrickjaja's actively-maintained binary package, which tracks upstream
-# Claude Desktop releases and supports the Cowork feature. Pair with
-# install-claude-cowork-service.sh for the native Linux Cowork backend.
-# Source: https://github.com/patrickjaja/claude-desktop-bin (AUR: claude-desktop-bin)
+# Uses Anthropic's OFFICIAL Linux build (AUR: claude-desktop), which ships Chat,
+# Cowork, and Claude Code. This supersedes the third-party stacks we used
+# before -- patrickjaja's claude-desktop-bin (removed from the AUR) plus the
+# separate claude-cowork-service backend (now deprecated: the official build
+# has native Cowork, so install-claude-cowork-service.sh is no longer needed).
+# Source: AUR: claude-desktop
 
-# One-time migration: remove the older, archived aaddrick build if it is the
-# literal installed package. Match against the installed list with `grep -qx`
-# so we do NOT match claude-desktop-bin's `provides=claude-desktop` alias
-# (matching it would uninstall the package we want). Plain -R keeps user data
-# in ~/.config/Claude. Remove the -debug split package before its parent.
-for pkg in claude-desktop-debug claude-desktop; do
+# One-time migration: remove superseded third-party builds if installed. Plain
+# -R keeps user data in ~/.config/Claude. `claude-desktop-bin` was patrickjaja's
+# binary package (its `provides=claude-desktop` alias means yay -S alone won't
+# swap it out for the real claude-desktop). `claude-desktop-debug` was the older
+# aaddrick split package; remove it before any parent.
+for pkg in claude-desktop-debug claude-desktop-bin; do
   if pacman -Qq | grep -qx "$pkg"; then
-    echo "Removing previous '$pkg' build (archived aaddrick PKGBUILD)..."
+    echo "Removing superseded '$pkg' build..."
     sudo pacman -R --noconfirm "$pkg"
   fi
 done
 
 # Install if missing, or update to the latest AUR version if behind.
-yay -S --needed --noconfirm claude-desktop-bin
+yay -S --needed --noconfirm claude-desktop

@@ -25,7 +25,10 @@ sudo systemctl enable --now tailscaled.service
 
 if tailscale status &>/dev/null; then
   echo "Tailscale already logged in:"
-  tailscale status | head -5
+  # `| head -5` closes the pipe early, so `tailscale status` takes SIGPIPE and,
+  # under `set -o pipefail`, the pipeline exits 141. As the script's last
+  # command that would make install-all.sh report a false failure -- swallow it.
+  tailscale status | head -5 || true
 else
   echo ""
   echo "Tailscale installed. Complete authentication with:"
