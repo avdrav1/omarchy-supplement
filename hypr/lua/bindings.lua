@@ -37,7 +37,7 @@ o.bind("SUPER + G", "Notion", { webapp = "https://www.notion.so/" })
 
 -- Vim-style focus movement. This takes over three Omarchy defaults:
 --   SUPER+J  Toggle window split
---   SUPER+K  Show key bindings
+--   SUPER+K  Show key bindings (remapped to SUPER+SHIFT+K below)
 --   SUPER+L  Toggle workspace layout
 hl.unbind("SUPER + H")
 hl.unbind("SUPER + J")
@@ -48,6 +48,10 @@ o.bind("SUPER + H", "Focus on left window", hl.dsp.focus({ direction = "l" }))
 o.bind("SUPER + L", "Focus on right window", hl.dsp.focus({ direction = "r" }))
 o.bind("SUPER + K", "Focus on above window", hl.dsp.focus({ direction = "u" }))
 o.bind("SUPER + J", "Focus on below window", hl.dsp.focus({ direction = "d" }))
+
+-- SUPER+K now focuses the window above, so relocate the Omarchy keybindings
+-- cheat sheet (default SUPER+K) to SUPER+SHIFT+K.
+o.bind("SUPER + SHIFT + K", "Show key bindings", "omarchy-menu-keybindings")
 
 -- Snappy Switcher (fast Alt+Tab window switcher). Installed via
 -- install-snappy-switcher.sh; user config.ini comes from the dotfiles repo.

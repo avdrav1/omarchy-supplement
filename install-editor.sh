@@ -47,5 +47,15 @@ if command -v systemctl &>/dev/null; then
   systemctl --user set-environment EDITOR="$EDITOR_CMD" VISUAL="$EDITOR_CMD" 2>/dev/null || true
 fi
 
+# Point Omarchy's editor keybind (SUPER+SHIFT+N -> omarchy-launch-editor) at the
+# same editor. That launcher reads this state file and otherwise falls back to
+# nvim; `fresh` is on its TUI whitelist so it opens via omarchy-launch-tui.
+# We write the file directly because omarchy-default-editor rejects `fresh` as
+# an argument (its case list predates fresh-editor).
+OMARCHY_EDITOR_STATE="$HOME/.local/state/omarchy/defaults/editor"
+mkdir -p "$(dirname "$OMARCHY_EDITOR_STATE")"
+printf '%s\n' "$EDITOR_CMD" >"$OMARCHY_EDITOR_STATE"
+echo "Omarchy default editor (SUPER+SHIFT+N) set to '$EDITOR_CMD'."
+
 echo "Default editor set to '$EDITOR_CMD' (EDITOR + VISUAL) in uwsm/default."
 echo "Restart aerc / your terminal to pick it up."
