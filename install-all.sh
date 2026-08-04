@@ -42,6 +42,8 @@ run ./install-vivaldi.sh
 run ./install-vscode.sh
 run ./install-obsidian.sh
 run ./install-slack.sh
+# After ghostty: the Shibumi shell inherits the ghostty terminal default.
+run ./install-shibumi.sh
 
 run ./install-stow.sh
 run ./install-dotfiles.sh
