@@ -2,12 +2,9 @@
 
 set -euo pipefail
 
-# Apply the Dos-Moos Omarchy theme and (on Omarchy 3 only) install the
-# Quickshell Rise bar.
+# Apply the Dos-Moos Omarchy theme and install the Quickshell Rise bar.
 # - Dos-Moos theme:      https://github.com/HANCORE-linux/omarchy-dos-moos-theme
 # - Quickshell Rise bar: https://github.com/HANCORE-linux/quickshell-dots
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Dos-Moos Omarchy theme ───────────────────────────────────────────────────
 # Deliberately FIRST. The theme is the system-wide color scheme and has no
@@ -45,84 +42,34 @@ if command -v snappy-switcher >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNA
   hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
 fi
 
-# ── Quickshell Rise bar (Omarchy 3 only) ─────────────────────────────────────
-# The Rise bar replaces waybar, which is only the bar on Omarchy 3. Omarchy 4
-# (quattro) ships its own quickshell-based shell -- omarchy-shell / omarchy-bar
-# -- and the omarchy package *depends on* quickshell-git. Our pinned
-# mainstream-quickshell-git declares conflicts=(quickshell quickshell-git) and
-# is an older commit than what omarchy 4 ships, so installing it there means
-# either a hard pacman conflict or downgrading the package omarchy's own shell
-# runs on. Detect via omarchy-shell: present == omarchy owns quickshell.
-if command -v omarchy-shell >/dev/null 2>&1; then
-  echo "Omarchy 4+ detected (omarchy-shell present) -- skipping Quickshell Rise bar."
-  echo "Omarchy's own shell already owns quickshell; installing Rise here would"
-  echo "conflict with / downgrade quickshell-git out from under omarchy-bar."
-  exit 0
-fi
-
+# ── Quickshell Rise bar ──────────────────────────────────────────────────────
+# Runs on Omarchy 3 (replacing waybar) and Omarchy 4 / quattro alike. Upstream
+# now detects quattro itself (qsr_has_quattro) and, with --autostart, hides the
+# stock omarchy bar rather than fighting it.
+#
+# No quickshell package work happens here any more. Upstream's dependency check
+# only wants `qs` on PATH, so Rise runs against whatever quickshell the machine
+# already has -- including the quickshell-git that omarchy 4's own shell depends
+# on. We used to force-remove that and build a pinned mainstream-quickshell-git
+# from quickshell/PKGBUILD, which conflicted with omarchy-bar and made the whole
+# bar Omarchy-3-only; verified unnecessary on omarchy 4 (2026-08-05).
 echo "Installing Quickshell Rise bar..."
 
-FALLBACK_MIRROR="Server = https://mirror.rackspace.com/archlinux/\$repo/os/\$arch"
-MIRRORLIST=/etc/pacman.d/mirrorlist
+# Install what upstream would otherwise install mid-run. Its font step shells
+# out to `sudo pacman` from inside a `set -e` script, so a machine without the
+# fonts aborts the whole install at that point on a sudo prompt. Doing it here
+# keeps every privileged action in one predictable place. bluez-utils provides
+# `bluetoothctl`, which the bar's Bluetooth widget shells out to for power state
+# and connected-device count; pacman-contrib provides `checkupdates`, which the
+# updater panel requires.
+sudo pacman -S --noconfirm --needed \
+  git jq curl pacman-contrib bluez-utils \
+  ttf-jetbrains-mono-nerd ttf-material-symbols-variable
 
-# The omarchy stable mirror may lag behind on newer Qt6 package revisions.
-# Add a fallback mirror so pacman can find anything the primary mirror is missing,
-# then remove it afterwards so the system stays on the stable mirror.
-add_fallback_mirror() {
-  if ! grep -qF 'mirror.rackspace.com' "$MIRRORLIST"; then
-    echo "$FALLBACK_MIRROR" | sudo tee -a "$MIRRORLIST" > /dev/null
-  fi
-}
-
-remove_fallback_mirror() {
-  sudo sed -i '/mirror.rackspace.com/d' "$MIRRORLIST"
-}
-
-# bluez-utils provides `bluetoothctl`, which the Quickshell Rise bar's Bluetooth
-# widget shells out to for power state and connected-device count.
-add_fallback_mirror
-sudo pacman -Sy --noconfirm --needed \
-  git jq curl bluez-utils \
-  qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
-  qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
-  qt6-translations qt6-virtualkeyboard qt6-wayland \
-  kirigami syntax-highlighting 2>/dev/null || \
-yay -S --noconfirm --needed \
-  git jq curl bluez-utils \
-  qt6-5compat qt6-avif-image-plugin qt6-imageformats qt6-multimedia \
-  qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools \
-  qt6-translations qt6-virtualkeyboard qt6-wayland \
-  kirigami syntax-highlighting
-remove_fallback_mirror
-
-# Build and install mainstream-quickshell-git from the stored (patched) PKGBUILD.
-# The patch removes the cpptrace dependency (only used for crash reporting) and
-# passes -DCRASH_HANDLER=OFF to cmake, so the build has no unavailable AUR deps.
-# We force-remove any stock quickshell first since they conflict.
-# Match exact installed package names: pacman -Qi resolves "provides", so it
-# would report our own mainstream-quickshell-git (Provides: quickshell) as a
-# match, but pacman -R can't resolve provides and would fail with
-# "target not found: quickshell" on re-runs. Grep exact names instead -- and
-# check both, since the PKGBUILD conflicts with quickshell AND quickshell-git.
-for pkg in quickshell quickshell-git; do
-  if pacman -Qq | grep -qx "$pkg"; then
-    sudo pacman -Rdd --noconfirm "$pkg"
-  fi
-done
-builddir="$(mktemp -d)"
-cp "$SCRIPT_DIR/quickshell/PKGBUILD" "$builddir/"
-cp "$SCRIPT_DIR/quickshell/quickshell-check.hook" "$builddir/"
-(cd "$builddir" && makepkg -si --noconfirm)
-rm -rf "$builddir"
-
-# Run the installer non-interactively with V1 version and Claude backend
-curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh | bash -s V1 --claude-backend
-
-# Install the autostart hook so Quickshell starts on boot
-HOOK_DIR="$HOME/.config/omarchy/hooks/post-boot.d"
-mkdir -p "$HOOK_DIR"
-curl -fsSL -o "$HOOK_DIR/quickshell-rise" \
-  https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/contrib/post-boot.d/quickshell-rise
-chmod +x "$HOOK_DIR/quickshell-rise"
+# --autostart installs the post-boot hook AND, on quattro, hides the stock bar
+# (a state Rise tracks as its own, so --no-autostart hands it back). The bar
+# itself is started and health-checked by the installer regardless of this flag.
+curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh \
+  | bash -s V1 --claude-backend --autostart
 
 echo "Quickshell Rise installed with autostart hook"

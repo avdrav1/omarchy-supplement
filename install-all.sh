@@ -68,8 +68,9 @@ cat <<'EOF'
 
 1. Log out and back in (or reboot) to apply session changes:
    - zsh becomes your default shell (chsh).
-   - Quickshell Rise bar starts via the post-boot autostart hook
-     (Omarchy 3 only -- skipped on Omarchy 4, which has its own shell).
+   - Quickshell Rise bar starts via the post-boot autostart hook. On Omarchy 4
+     (quattro) it also hides the stock omarchy bar; to hand that back, re-run
+     the upstream installer with --no-autostart.
    - Open terminals/aerc pick up the new $EDITOR (fresh) and mise on PATH.
 
 2. Display scale (per machine):
