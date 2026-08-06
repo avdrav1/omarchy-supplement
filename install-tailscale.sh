@@ -21,7 +21,14 @@ else
   sudo pacman -S --noconfirm --needed tailscale
 fi
 
-sudo systemctl enable --now tailscaled.service
+# Enable + start the daemon only if it isn't already both enabled and active.
+# Running `sudo systemctl enable --now` unconditionally means a re-run on a
+# provisioned machine still needs a password and fails in a non-interactive run,
+# even though there is nothing to do.
+if ! systemctl is-enabled --quiet tailscaled.service \
+  || ! systemctl is-active --quiet tailscaled.service; then
+  sudo systemctl enable --now tailscaled.service
+fi
 
 if tailscale status &>/dev/null; then
   echo "Tailscale already logged in:"

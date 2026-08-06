@@ -35,7 +35,18 @@ if ! command -v hyprpm >/dev/null 2>&1; then
 fi
 
 # hyprpm needs the toolchain to compile the plugin against Hyprland's headers.
-sudo pacman -S --noconfirm --needed base-devel cmake meson ninja cpio git
+# Only install what's missing so a re-run on a provisioned machine doesn't reach
+# for sudo (and doesn't fail in a non-interactive run) just to reconfirm it.
+# base-devel is a group -- `pacman -Qq base-devel` fails even when every member
+# is installed -- so probe the compiler directly as a proxy for its presence.
+toolchain_missing=()
+{ command -v gcc && command -v make; } &>/dev/null || toolchain_missing+=(base-devel)
+for pkg in cmake meson ninja cpio git; do
+  pacman -Qq "$pkg" &>/dev/null || toolchain_missing+=("$pkg")
+done
+if ((${#toolchain_missing[@]})); then
+  sudo pacman -S --noconfirm --needed "${toolchain_missing[@]}"
+fi
 
 # Post-upgrade reminder hook, mirroring quickshell/quickshell-check.hook.
 # It only notifies: the rebuild needs an interactive sudo, which a pacman hook
@@ -45,9 +56,16 @@ sudo pacman -S --noconfirm --needed base-devel cmake meson ninja cpio git
 # failure aborts the script, and this hook is pure documentation with no
 # dependency on the build succeeding -- installing it afterwards meant a failed
 # run left no reminder behind on top of leaving no plugin.
-echo "Installing pacman hook for post-upgrade plugin checks..."
-sudo mkdir -p /etc/pacman.d/hooks
-sudo cp "$SCRIPT_DIR/hypr/hyprpm-plugins.hook" /etc/pacman.d/hooks/hyprpm-plugins.hook
+# Install/refresh the hook only when it differs from what's already there, so a
+# re-run doesn't spend a sudo just to overwrite an identical file. The hooks dir
+# is world-readable, so the cmp needs no privileges.
+HOOK_SRC="$SCRIPT_DIR/hypr/hyprpm-plugins.hook"
+HOOK_DST="/etc/pacman.d/hooks/hyprpm-plugins.hook"
+if ! cmp -s "$HOOK_SRC" "$HOOK_DST" 2>/dev/null; then
+  echo "Installing pacman hook for post-upgrade plugin checks..."
+  sudo mkdir -p /etc/pacman.d/hooks
+  sudo cp "$HOOK_SRC" "$HOOK_DST"
+fi
 
 # NOTE: hyprpm elevates itself via sudo to write its state under
 # /var/cache/hyprpm/$USER (root-owned), so the calls below may prompt for a

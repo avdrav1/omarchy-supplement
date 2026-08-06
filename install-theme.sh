@@ -62,9 +62,20 @@ echo "Installing Quickshell Rise bar..."
 # `bluetoothctl`, which the bar's Bluetooth widget shells out to for power state
 # and connected-device count; pacman-contrib provides `checkupdates`, which the
 # updater panel requires.
-sudo pacman -S --noconfirm --needed \
-  git jq curl pacman-contrib bluez-utils \
+bar_pkgs=(
+  git jq curl pacman-contrib bluez-utils
   ttf-jetbrains-mono-nerd ttf-material-symbols-variable
+)
+missing_pkgs=()
+for pkg in "${bar_pkgs[@]}"; do
+  pacman -Qq "$pkg" &>/dev/null || missing_pkgs+=("$pkg")
+done
+# Only reach for sudo when something is actually missing, so a re-run on a
+# provisioned machine doesn't prompt for a password (and doesn't fail in a
+# non-interactive run) just to confirm packages that are already present.
+if ((${#missing_pkgs[@]})); then
+  sudo pacman -S --noconfirm --needed "${missing_pkgs[@]}"
+fi
 
 # --autostart installs the post-boot hook AND, on quattro, hides the stock bar
 # (a state Rise tracks as its own, so --no-autostart hands it back). The bar

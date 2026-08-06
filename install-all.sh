@@ -5,6 +5,27 @@
 # ~/omarchy-supplement/install-all.sh from $HOME).
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
+# Authenticate sudo ONCE up front. Nearly every installer below needs root
+# (pacman/yay/systemctl). Without a warmed credential each one authenticates
+# separately, and in a non-interactive run (no tty) they fail one by one and
+# pile up in the failure summary as spurious errors -- even on a machine that is
+# already fully provisioned. Prompt once here, fail fast with an actionable
+# message when there's no tty, and keep the timestamp alive for the whole run
+# (plugin/AUR builds can exceed sudo's default 15-minute timeout).
+if ! sudo -v; then
+  echo "!! This installer needs sudo. Run it in an interactive terminal, or" >&2
+  echo "!! configure passwordless sudo for pacman/systemctl, then re-run." >&2
+  exit 1
+fi
+_PARENT_PID=$$
+while true; do
+  sudo -n true
+  sleep 60
+  kill -0 "$_PARENT_PID" 2>/dev/null || exit
+done &
+_SUDO_KEEPALIVE_PID=$!
+trap 'kill "$_SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
+
 # Individual installers are intentionally non-fatal -- one broken installer
 # shouldn't abort the whole provision. But a bare `./install-foo.sh` also makes
 # a failure invisible: the run keeps going and still prints the manual-steps

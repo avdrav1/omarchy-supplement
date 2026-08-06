@@ -26,4 +26,18 @@ for pkg in claude-desktop-debug claude-desktop-bin; do
 done
 
 # Install if missing, or update to the latest AUR version if behind.
-yay -S --needed --noconfirm claude-desktop
+#
+# The AUR RPC endpoint intermittently resets the connection mid-fetch (transient,
+# frequently over IPv6: "read: connection reset by peer"), which aborts the whole
+# yay run. Retry a few times so a network blip doesn't fail the provision.
+for attempt in 1 2 3; do
+  if yay -S --needed --noconfirm claude-desktop; then
+    break
+  fi
+  if ((attempt == 3)); then
+    echo "claude-desktop install failed after $attempt attempts." >&2
+    exit 1
+  fi
+  echo "claude-desktop install failed (attempt $attempt/3); retrying in 5s..." >&2
+  sleep 5
+done

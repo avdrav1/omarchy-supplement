@@ -2,8 +2,10 @@
 
 set -e
 
-# Install tmux
-yay -S --noconfirm --needed tmux
+# Install tmux. Guard on the binary so a re-run on a provisioned machine skips
+# yay entirely -- a bare `yay -S` pre-authenticates via sudo even when the
+# package is already current, which fails in a non-interactive run.
+command -v tmux &>/dev/null || yay -S --noconfirm --needed tmux
 
 # Check if tmux is installed
 if ! command -v tmux &>/dev/null; then
