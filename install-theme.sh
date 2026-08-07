@@ -2,16 +2,14 @@
 
 set -euo pipefail
 
-# Apply the Dos-Moos Omarchy theme and install the Quickshell Rise bar.
-# - Dos-Moos theme:      https://github.com/HANCORE-linux/omarchy-dos-moos-theme
-# - Quickshell Rise bar: https://github.com/HANCORE-linux/quickshell-dots
+# Apply the Dos-Moos Omarchy theme.
+# - Dos-Moos theme: https://github.com/HANCORE-linux/omarchy-dos-moos-theme
+#
+# The bar is no longer installed here. This script used to also install the
+# Quickshell Rise bar; that has been superseded by Shibumi Shell, which
+# install-shibumi.sh installs (and which retires the leftover Rise footprint).
 
 # ── Dos-Moos Omarchy theme ───────────────────────────────────────────────────
-# Deliberately FIRST. The theme is the system-wide color scheme and has no
-# dependency on the Quickshell Rise bar below. When the bar ran first, any
-# failure there tripped `set -e` and skipped theming entirely -- and since
-# install-all.sh has no `set -e`, the run still printed its "Manual steps"
-# summary and looked successful.
 THEME_URL="https://github.com/HANCORE-linux/omarchy-dos-moos-theme"
 THEME_NAME="dos-moos"
 THEME_DIR="$HOME/.config/omarchy/themes/$THEME_NAME"
@@ -41,46 +39,3 @@ if command -v snappy-switcher >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNA
   sleep 1
   hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
 fi
-
-# ── Quickshell Rise bar ──────────────────────────────────────────────────────
-# Runs on Omarchy 3 (replacing waybar) and Omarchy 4 / quattro alike. Upstream
-# now detects quattro itself (qsr_has_quattro) and, with --autostart, hides the
-# stock omarchy bar rather than fighting it.
-#
-# No quickshell package work happens here any more. Upstream's dependency check
-# only wants `qs` on PATH, so Rise runs against whatever quickshell the machine
-# already has -- including the quickshell-git that omarchy 4's own shell depends
-# on. We used to force-remove that and build a pinned mainstream-quickshell-git
-# from quickshell/PKGBUILD, which conflicted with omarchy-bar and made the whole
-# bar Omarchy-3-only; verified unnecessary on omarchy 4 (2026-08-05).
-echo "Installing Quickshell Rise bar..."
-
-# Install what upstream would otherwise install mid-run. Its font step shells
-# out to `sudo pacman` from inside a `set -e` script, so a machine without the
-# fonts aborts the whole install at that point on a sudo prompt. Doing it here
-# keeps every privileged action in one predictable place. bluez-utils provides
-# `bluetoothctl`, which the bar's Bluetooth widget shells out to for power state
-# and connected-device count; pacman-contrib provides `checkupdates`, which the
-# updater panel requires.
-bar_pkgs=(
-  git jq curl pacman-contrib bluez-utils
-  ttf-jetbrains-mono-nerd ttf-material-symbols-variable
-)
-missing_pkgs=()
-for pkg in "${bar_pkgs[@]}"; do
-  pacman -Qq "$pkg" &>/dev/null || missing_pkgs+=("$pkg")
-done
-# Only reach for sudo when something is actually missing, so a re-run on a
-# provisioned machine doesn't prompt for a password (and doesn't fail in a
-# non-interactive run) just to confirm packages that are already present.
-if ((${#missing_pkgs[@]})); then
-  sudo pacman -S --noconfirm --needed "${missing_pkgs[@]}"
-fi
-
-# --autostart installs the post-boot hook AND, on quattro, hides the stock bar
-# (a state Rise tracks as its own, so --no-autostart hands it back). The bar
-# itself is started and health-checked by the installer regardless of this flag.
-curl -fsSL https://raw.githubusercontent.com/HANCORE-linux/quickshell-dots/main/install.sh \
-  | bash -s V1 --claude-backend --autostart
-
-echo "Quickshell Rise installed with autostart hook"
