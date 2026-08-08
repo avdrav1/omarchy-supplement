@@ -85,7 +85,19 @@ for unit in $(systemctl --user list-units --no-legend 'qsrise-bar-*' 2>/dev/null
 done
 systemctl --user disable --now qs-shell-update-check.timer 2>/dev/null || true
 systemctl --user stop qs-shell-update-check.service 2>/dev/null || true
-pkill -f 'quickshell/bar/shell.qml' 2>/dev/null || true
+# Rise's config path (~/.config/quickshell/bar/shell.qml) appears only in
+# Quickshell's *instance registry*, never in the process cmdline -- a Rise
+# process reads `qs -n -d -c bar`, so matching the path with `pkill -f` is a
+# silent no-op that leaves the old bar drawing over Shibumi. Ask Quickshell
+# instead, and kill by pid so the stock omarchy-shell instance (config path
+# /usr/share/omarchy/shell/shell.qml) is never caught.
+if command -v qs >/dev/null 2>&1; then
+  for pid in $(qs list --all 2>/dev/null | awk -v dir="$HOME/.config/quickshell/bar/" '
+        /^[[:space:]]*Process ID:/  { pid = $3 }
+        /^[[:space:]]*Config path:/ { if (index($3, dir) == 1) print pid }'); do
+    qs kill --pid "$pid" >/dev/null 2>&1 || kill "$pid" 2>/dev/null || true
+  done
+fi
 
 # 2. Remove the Omarchy hooks that relaunch/refresh Rise on boot and theme-set.
 rm -f "$HOME/.config/omarchy/hooks/post-boot.d/quickshell-rise"
