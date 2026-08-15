@@ -4,8 +4,12 @@
 echo "Installing PostgreSQL..."
 yay -S --noconfirm --needed postgresql
 
-# Check if data directory already exists and is initialized
-if [ ! -d "/var/lib/postgres/data" ] || [ -z "$(ls -A /var/lib/postgres/data 2>/dev/null)" ]; then
+# Check if data directory already exists and is initialized. The probe has to
+# run as root: /var/lib/postgres is 0700 postgres-owned, so an unprivileged
+# `ls -A` fails, returns nothing, and reads as "empty" -- which sent every
+# re-run into initdb only for it to refuse with "exists but is not empty".
+# PG_VERSION is written by initdb, so it marks a complete cluster.
+if ! sudo test -s /var/lib/postgres/data/PG_VERSION; then
     echo "Initializing PostgreSQL database..."
     sudo -u postgres initdb -D /var/lib/postgres/data --locale=C.UTF-8 --encoding=UTF8 --data-checksums
 else
