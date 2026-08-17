@@ -5,6 +5,20 @@
 # ~/omarchy-supplement/install-all.sh from $HOME).
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
+# A repo section declared twice in pacman.conf makes libalpm refuse to register
+# that database. pacman itself only warns and carries on, but yay treats the
+# failed registration as fatal and exits before doing anything -- so every AUR
+# installer below dies with an error that never mentions pacman.conf. Catch it
+# here, where the message can point at the actual cause.
+_dupe_repos=$(awk -F'[][]' '/^\[/ && $2 != "options" {c[$2]++} END {for (r in c) if (c[r] > 1) print r}' /etc/pacman.conf)
+if [ -n "$_dupe_repos" ]; then
+  echo "!! Duplicate repo section(s) in /etc/pacman.conf:" >&2
+  printf '!!   [%s]\n' $_dupe_repos >&2
+  echo "!! libalpm cannot register a database twice, so yay fails on every AUR" >&2
+  echo "!! package. Delete the duplicate block(s), then re-run." >&2
+  exit 1
+fi
+
 # Authenticate sudo ONCE up front. Nearly every installer below needs root
 # (pacman/yay/systemctl). Without a warmed credential each one authenticates
 # separately, and in a non-interactive run (no tty) they fail one by one and
@@ -32,8 +46,40 @@ trap 'kill "$_SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
 # summary below, so it reads as success. Record failures and report them at the
 # end instead.
 FAILED=()
+
+# Re-validate sudo before each installer.
+#
+# The keepalive above can only *extend* a live timestamp: `sudo -n` is
+# non-interactive, so once the credential actually lapses it can never
+# re-acquire one and every subsequent tick fails silently. That happens for
+# real -- an installer that shells out to a tool with its own interactive sudo
+# prompt (hyprpm) can sit at that prompt long enough for the keepalive to miss
+# its window, and from then on the run is quietly rootless. The failure mode is
+# nasty: yay still downloads and *builds* each package, then dies handing off to
+# `pacman -U`, so installers fail minutes apart with all their work thrown away
+# and nothing pointing at sudo.
+#
+# Checking at each installer boundary turns that into one prompt instead of a
+# silent cascade.
+_SUDO_DEAD=0
+ensure_sudo() {
+  ((_SUDO_DEAD)) && return 1
+  sudo -n true 2>/dev/null && return 0
+  echo "!! sudo credentials lapsed mid-run; re-authenticating..." >&2
+  sudo -v && return 0
+  _SUDO_DEAD=1
+  echo "!! Could not re-acquire sudo (no tty?). Skipping the rest: every" >&2
+  echo "!! remaining installer that needs root would build its package and" >&2
+  echo "!! then fail handing off to pacman." >&2
+  return 1
+}
+
 run() {
   local status=0
+  if ! ensure_sudo; then
+    FAILED+=("$* (skipped -- no sudo)")
+    return 1
+  fi
   # Capture the status directly -- inside `if ! "$@"` the `!` has already
   # rewritten $? to 0, so reading it in the branch always reports success.
   "$@" || status=$?
