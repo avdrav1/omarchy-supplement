@@ -71,11 +71,27 @@ fi
 # /var/cache/hyprpm/$USER (root-owned), so the calls below may prompt for a
 # password. That is also why this step cannot be automated from a pacman hook.
 
+# Build/install the Hyprland headers hyprpm compiles plugins against, BEFORE
+# touching the plugin itself. hyprpm keeps them under
+# /var/cache/hyprpm/$USER/headersRoot and refuses every other operation until
+# they match the running Hyprland: on a machine where hyprpm has never run --
+# and on any machine whose Hyprland was upgraded since it last did -- `hyprpm
+# add` exits immediately with "Headers outdated, please run hyprpm update",
+# before it consults commit pins and before it clones anything. The fallback
+# add below hits the identical wall, so without this the whole script fails
+# leaving an empty /var/cache/hyprpm/$USER and no state.toml to explain why.
+#
+# `hyprpm update` is the only thing that installs those headers (it clones the
+# Hyprland source at the running commit, configures it, and runs `sudo make
+# installheaders`), so it has to come first. It doubles as the refresh path for
+# an already-added plugin, so running it unconditionally covers both cases --
+# which is why the branch below no longer calls it separately.
+hyprpm update
+
 # `hyprpm add` is not re-runnable -- it errors if the repo is already present --
 # so guard on the plugin already being known to hyprpm.
 if hyprpm list 2>/dev/null | grep -q "$PLUGIN_NAME"; then
-  echo "Plugin $PLUGIN_NAME already added; updating."
-  hyprpm update
+  echo "Plugin $PLUGIN_NAME already added; rebuilt by the update above."
 else
   # hyprpm refuses to add a plugin when upstream's hyprpm.toml carries no commit
   # pin for the running Hyprland. It bails *before* cloning, so no plugin source
