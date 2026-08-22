@@ -37,5 +37,12 @@ if command -v snappy-switcher >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNA
   snappy-switcher quit >/dev/null 2>&1 || true
   pkill -f 'snappy-switcher --daemon' >/dev/null 2>&1 || true
   sleep 1
-  hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+  # Same Lua-vs-hyprlang split as install-snappy-switcher.sh: `hyprctl dispatch
+  # exec <cmd>` is a parse error under the Lua parser, so the restart here would
+  # kill the daemon and never bring it back.
+  if [ -f "$HOME/.config/hypr/hyprland.lua" ]; then
+    hyprctl dispatch 'hl.dsp.exec_cmd("snappy-switcher --daemon")' >/dev/null 2>&1 || true
+  else
+    hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+  fi
 fi

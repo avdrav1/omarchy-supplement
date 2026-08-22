@@ -19,8 +19,19 @@ fi
 # hyprland-overrides.conf only fires at login, so a fresh install otherwise has
 # no running daemon (and the ALT/SUPER+TAB binds silently do nothing) until the
 # next logout. The pgrep guard keeps this re-runnable.
+#
+# Under Omarchy's Lua parser `hyprctl dispatch` evaluates Lua, so the hyprlang
+# form `hyprctl dispatch exec <cmd>` is a parse error rather than a dispatch
+# ("')' expected near ..."). With the output swallowed that read as success
+# while leaving no daemon behind, and the ALT/SUPER+TAB binds then silently did
+# nothing until the next login. Use the plugin-safe Lua namespace there, and
+# keep the legacy form for machines still on hyprlang.
 if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && ! pgrep -f 'snappy-switcher --daemon' >/dev/null; then
-  hyprctl dispatch exec "snappy-switcher --daemon" >/dev/null 2>&1 || true
+  if [ -f "$HOME/.config/hypr/hyprland.lua" ]; then
+    hyprctl dispatch 'hl.dsp.exec_cmd("snappy-switcher --daemon")' >/dev/null 2>&1 || true
+  else
+    hyprctl dispatch exec "snappy-switcher --daemon" >/dev/null 2>&1 || true
+  fi
 fi
 
 echo "snappy-switcher installation complete."
