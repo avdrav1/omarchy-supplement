@@ -25,14 +25,18 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.config/starship.toml ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf
+  rm -rf ~/.zshrc ~/.config/nvim ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf
 
   cd "$REPO_NAME"
   stow zshrc
   stow ghostty
   stow tmux
   stow nvim
-  stow starship
+  # starship is deliberately NOT stowed: ~/.config/starship.toml is owned by
+  # install-starship.sh, which generates the upstream pastel-powerline preset.
+  # The dotfiles repo still carries a starship package (its own peach/lavender
+  # theme) -- stowing it here would symlink that over the preset, since this
+  # installer runs first. Keep it out of both this list and the rm -rf above.
   # snappy-switcher's config dir gets folded into a single stow symlink, so
   # removing ~/.config/snappy-switcher/config.ini in the cleanup above would
   # delete the tracked file *through* that symlink, wiping it from the dotfiles

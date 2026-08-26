@@ -19,12 +19,27 @@ if ! sudo -v; then
 fi
 _PARENT_PID=$$
 while true; do
-  sudo -n true
+  sudo -n true 2>/dev/null
   sleep 60
   kill -0 "$_PARENT_PID" 2>/dev/null || exit
 done &
 _SUDO_KEEPALIVE_PID=$!
 trap 'kill "$_SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
+
+# The keepalive above is best-effort, not a guarantee: `sudo -n` can only extend
+# a *live* credential, so once the timestamp lapses for any reason (a long
+# hyprpm/AUR build stalling the loop, hyprpm's own sudo calls, a policy that
+# expires the ticket) it can never recover it -- it just fails silently every
+# 60s for the rest of the run. That is exactly what leaves a run where the first
+# dozen installers succeed and every later one that needs root fails at once.
+#
+# So re-check in the FOREGROUND before each installer, where there is still a
+# tty to prompt on, and re-authenticate if the credential is gone.
+sudo_refresh() {
+  sudo -n true 2>/dev/null && return 0
+  echo "!! sudo credential lapsed -- re-authenticating." >&2
+  sudo -v
+}
 
 # Individual installers are intentionally non-fatal -- one broken installer
 # shouldn't abort the whole provision. But a bare `./install-foo.sh` also makes
@@ -34,6 +49,13 @@ trap 'kill "$_SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
 FAILED=()
 run() {
   local status=0
+  # Fail the installer here rather than letting it die halfway through a
+  # pacman/yay call it can no longer authenticate.
+  if ! sudo_refresh; then
+    echo "!! FAILED: $* (no sudo credential)" >&2
+    FAILED+=("$*")
+    return
+  fi
   # Capture the status directly -- inside `if ! "$@"` the `!` has already
   # rewritten $? to 0, so reading it in the branch always reports success.
   "$@" || status=$?
@@ -66,6 +88,9 @@ run ./install-slack.sh
 
 run ./install-stow.sh
 run ./install-dotfiles.sh
+# After dotfiles: it clears and re-stows ~/.config, so the starship preset has
+# to be written afterwards or a leftover `stow starship` symlink wins.
+run ./install-starship.sh
 run ./install-hyprland-overrides.sh
 # After hyprland-overrides so the plugin{} block and binds are already sourced
 # when hyprpm loads the plugin.
