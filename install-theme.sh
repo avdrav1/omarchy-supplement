@@ -34,15 +34,22 @@ echo "Dos-Moos theme applied"
 # being installed, and kept non-fatal so theming never breaks here.
 if command -v snappy-switcher >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
   echo "Restarting snappy-switcher to apply its themed config..."
-  snappy-switcher quit >/dev/null 2>&1 || true
-  pkill -f 'snappy-switcher --daemon' >/dev/null 2>&1 || true
-  sleep 1
-  # Same Lua-vs-hyprlang split as install-snappy-switcher.sh: `hyprctl dispatch
-  # exec <cmd>` is a parse error under the Lua parser, so the restart here would
-  # kill the daemon and never bring it back.
-  if [ -f "$HOME/.config/hypr/hyprland.lua" ]; then
-    hyprctl dispatch 'hl.dsp.exec_cmd("snappy-switcher --daemon")' >/dev/null 2>&1 || true
+  # Where the systemd user unit owns the daemon, restart through it -- tearing
+  # it down by hand and starting a raw replacement leaves systemd believing the
+  # service is dead while an unsupervised daemon holds the socket.
+  if systemctl --user is-enabled snappy-switcher.service >/dev/null 2>&1; then
+    systemctl --user restart snappy-switcher.service >/dev/null 2>&1 || true
   else
-    hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+    snappy-switcher quit >/dev/null 2>&1 || true
+    pkill -x snappy-switcher >/dev/null 2>&1 || true
+    sleep 1
+    # Same Lua-vs-hyprlang split as install-snappy-switcher.sh: `hyprctl dispatch
+    # exec <cmd>` is a parse error under the Lua parser, so the restart here would
+    # kill the daemon and never bring it back.
+    if [ -f "$HOME/.config/hypr/hyprland.lua" ]; then
+      hyprctl dispatch 'hl.dsp.exec_cmd("snappy-switcher --daemon")' >/dev/null 2>&1 || true
+    else
+      hyprctl dispatch exec 'snappy-switcher --daemon' >/dev/null 2>&1 || true
+    fi
   fi
 fi

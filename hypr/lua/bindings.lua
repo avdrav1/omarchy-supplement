@@ -56,7 +56,14 @@ o.bind("SUPER + SHIFT + K", "Show key bindings", "omarchy-menu-keybindings")
 -- Snappy Switcher (fast Alt+Tab window switcher). Installed via
 -- install-snappy-switcher.sh; user config.ini comes from the dotfiles repo.
 -- Replaces Omarchy's ALT+TAB (cycle windows) and SUPER+TAB (next workspace).
-o.exec_on_start("snappy-switcher --daemon")
+-- The daemon is a single-instance server: it binds
+-- $XDG_RUNTIME_DIR/snappy-switcher.sock, and a second instance *unlinks and
+-- takes over* that socket, killing the first. So never start it raw when the
+-- packaged systemd user unit may already have. Delegate to the unit (a no-op
+-- when it is already running) and fall back to a direct start only on machines
+-- whose snappy-switcher package predates the unit.
+-- install-snappy-switcher.sh repairs the unit's sandbox and enables it.
+o.exec_on_start("systemctl --user start snappy-switcher.service || snappy-switcher --daemon")
 
 hl.unbind("ALT + TAB")
 hl.unbind("SUPER + TAB")
