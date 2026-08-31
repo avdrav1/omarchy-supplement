@@ -104,6 +104,10 @@ run ./install-theme.sh
 # After the theme so Shibumi picks up Dos-Moos colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
 run ./install-shibumi.sh
+# LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
+# Shibumi's installer rewrites, so it has to run after that settles -- and its
+# shell restart should be the final one of the provision.
+run ./install-omarchy-menu-websearch.sh
 
 # ── Manual steps ─────────────────────────────────────────────────────────────
 # Everything above is automated; the items below need a human (interactive
@@ -150,7 +154,13 @@ cat <<'EOF'
    A pacman hook prints this reminder post-upgrade; it can't run the rebuild
    itself because hyprpm needs an interactive sudo.
 
-6. Gmail / aerc (OAuth2, one-time per machine):
+6. Omarchy menu web-search fallback:  after every `omarchy update`, re-run
+   ./install-omarchy-menu-websearch.sh
+   It clones and patches the omarchy.menu plugin, so an Omarchy release that
+   ships a new menu leaves the clone frozen on the old one. The re-run
+   re-clones from the updated /usr/share/omarchy and re-applies the patch.
+
+7. Gmail / aerc (OAuth2, one-time per machine):
    - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
      screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
    - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
