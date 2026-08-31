@@ -70,3 +70,22 @@ hl.unbind("SUPER + TAB")
 
 o.bind("ALT + TAB", "Snappy Switcher Next", "snappy-switcher next --mod alt")
 o.bind("SUPER + TAB", "Snappy Switcher Workspace Next", "snappy-switcher next --workspace --mod super")
+
+-- Strata file manager (Miller-column, keyboard-first). Installed via
+-- install-strata.sh, which also writes the .desktop entry and makes Strata the
+-- XDG handler for inode/directory.
+--
+-- Replaces Omarchy's two Nautilus binds. Both are unbound first -- o.bind adds
+-- rather than replaces, so skipping the unbind launches Nautilus *and* Strata
+-- on one press.
+--
+-- Bound here in the Lua tree only. The legacy hyprland-overrides.conf keeps
+-- SUPER+SHIFT+F for re-enabling the internal display (paired with SUPER+SHIFT+D
+-- to disable it), so Strata deliberately has no hyprlang counterpart -- see the
+-- note beside that bind.
+hl.unbind("SUPER + SHIFT + F")
+hl.unbind("SUPER + ALT + SHIFT + F")
+
+o.bind("SUPER + SHIFT + F", "File manager", "uwsm app -- strata")
+o.bind("SUPER + ALT + SHIFT + F", "File manager (cwd)",
+  "uwsm app -- strata \"$(omarchy-cmd-terminal-cwd)\"")
