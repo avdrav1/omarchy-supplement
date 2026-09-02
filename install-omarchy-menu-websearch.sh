@@ -166,8 +166,8 @@ START = "  // >>> omarchy-supplement: web-search fallback"
 END = "  // <<< omarchy-supplement: web-search fallback"
 TAIL = "// omarchy-supplement: web-search fallback"
 
-# Insert the helper just above this comment, i.e. immediately after runAction().
-ANCHOR_HELPER = "  // Menu rows only surface their detail while a search is narrowing them;"
+# Insert the helper just above this function, i.e. immediately after runAction().
+ANCHOR_HELPER = "  function rowHeightForDetail(detail) {"
 # Append the fallback right after menu rows and app rows have both been scored
 # and concatenated, so it only fires when genuinely nothing matched.
 ANCHOR_CALL = "      rows = currentRows.concat(drilldownRows)\n"
@@ -194,7 +194,7 @@ for name, anchor in (("helper", ANCHOR_HELPER), ("call site", ANCHOR_CALL)):
         sys.exit(2)
 
 # The row is handed to a QML ListModel alongside rows built by
-# MenuModel.displayRow(), so it must carry exactly the same 16 fields in the
+# MenuModel.displayRow(), so it must carry exactly the same 15 fields in the
 # same order -- the delegate declares each of them as a `required property`.
 # kind "action" is what makes Enter run `action` instead of descending a submenu.
 helper = """%(start)s
@@ -204,7 +204,6 @@ helper = """%(start)s
     var url = root.webSearchPrefix + encodeURIComponent(query)
     return {
       itemId: "websearch",
-      disabled: false,
       kind: "action",
       icon: "",
       iconFont: "",
