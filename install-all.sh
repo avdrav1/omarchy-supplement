@@ -109,6 +109,9 @@ run ./install-theme.sh
 # After the theme so Shibumi picks up Dos-Moos colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
 run ./install-shibumi.sh
+# After Shibumi: it branches on which bar is installed, and rewrites the group
+# layout Shibumi's installer has just laid down.
+run ./install-sync-calendar.sh
 # LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
 # Shibumi's installer rewrites, so it has to run after that settles -- and its
 # shell restart should be the final one of the provision.
@@ -165,7 +168,21 @@ cat <<'EOF'
    ships a new menu leaves the clone frozen on the old one. The re-run
    re-clones from the updated /usr/share/omarchy and re-applies the patch.
 
-7. Gmail / aerc (OAuth2, one-time per machine):
+7. Calendar Sync clock (per machine):  the bar clock renders empty until it has
+   a feed. Click it -> settings gear -> Add Calendar, or write
+   ~/.config/omarchy/calendars.json directly (it hot-reloads). That file holds
+   private .ics URLs and JMAP bearer tokens, so it is deliberately NOT tracked
+   in this repo and does not sync -- add feeds on each machine.
+   Two traps, both of which sync "successfully" and just show nothing:
+   - Keep the outer [ ] -- the file is an ARRAY of calendars. A bare object
+     makes fetch-events.py die on an AttributeError nothing surfaces.
+   - Check the calendar id inside the URL (.../ical/<id>/private-.../basic.ics)
+     is the account you actually use. A Google secret address copied from the
+     wrong account fetches fine and reports status "ok" with no events.
+   Google Workspace hides the secret address until an admin sets Calendar ->
+   Sharing settings -> External sharing options to one of the bottom two.
+
+8. Gmail / aerc (OAuth2, one-time per machine):
    - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
      screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
    - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
