@@ -5,6 +5,20 @@
 # ~/omarchy-supplement/install-all.sh from $HOME).
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
+# A repo section declared twice in pacman.conf makes libalpm refuse to register
+# that database. pacman itself only warns and carries on, but yay treats the
+# failed registration as fatal and exits before doing anything -- so every AUR
+# installer below dies with an error that never mentions pacman.conf. Catch it
+# here, where the message can point at the actual cause.
+_dupe_repos=$(awk -F'[][]' '/^\[/ && $2 != "options" {c[$2]++} END {for (r in c) if (c[r] > 1) print r}' /etc/pacman.conf)
+if [ -n "$_dupe_repos" ]; then
+  echo "!! Duplicate repo section(s) in /etc/pacman.conf:" >&2
+  printf '!!   [%s]\n' $_dupe_repos >&2
+  echo "!! libalpm cannot register a database twice, so yay fails on every AUR" >&2
+  echo "!! package. Delete the duplicate block(s), then re-run." >&2
+  exit 1
+fi
+
 # Authenticate sudo ONCE up front. Nearly every installer below needs root
 # (pacman/yay/systemctl). Without a warmed credential each one authenticates
 # separately, and in a non-interactive run (no tty) they fail one by one and
@@ -35,10 +49,21 @@ trap 'kill "$_SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
 #
 # So re-check in the FOREGROUND before each installer, where there is still a
 # tty to prompt on, and re-authenticate if the credential is gone.
+#
+# When even that fails there is no tty at all, and every remaining installer
+# that needs root would download and *build* its package before dying at the
+# `pacman -U` handoff -- minutes of work each, thrown away, with nothing in the
+# error pointing at sudo. Latch that state and skip the rest instead.
+_SUDO_DEAD=0
 sudo_refresh() {
+  ((_SUDO_DEAD)) && return 1
   sudo -n true 2>/dev/null && return 0
   echo "!! sudo credential lapsed -- re-authenticating." >&2
-  sudo -v
+  sudo -v && return 0
+  _SUDO_DEAD=1
+  echo "!! Could not re-acquire sudo (no tty?). Skipping every remaining" >&2
+  echo "!! installer that needs root." >&2
+  return 1
 }
 
 # Individual installers are intentionally non-fatal -- one broken installer
@@ -47,6 +72,7 @@ sudo_refresh() {
 # summary below, so it reads as success. Record failures and report them at the
 # end instead.
 FAILED=()
+
 run() {
   local status=0
   # Fail the installer here rather than letting it die halfway through a
