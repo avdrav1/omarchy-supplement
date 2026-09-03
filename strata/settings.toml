@@ -1,0 +1,53 @@
+# Strata preferences -- seeded by install-strata.sh into ~/.config/strata/settings.toml.
+#
+# WHY THIS IS COPIED, NOT STOWED/SYMLINKED
+# Strata rewrites this file whenever a setting changes in Settings (Ctrl+,), and
+# it does so through storage::atomic_write, which calls symlink_metadata on the
+# destination and REFUSES anything that is not a regular file:
+#     "refusing to replace non-regular destination"
+# A stow symlink therefore does not merely get replaced -- it makes every save
+# fail, silently (the error is only a tracing::warn, never surfaced in the UI).
+# So this file is installed as a real file, seeded once and thereafter owned by
+# the app. Re-running the installer leaves an existing file untouched; delete it
+# to get these defaults back. It is deliberately absent from install-dotfiles.sh
+# for the same reason ~/.config/starship.toml is.
+#
+# Only deliberate divergences from upstream defaults are listed. Every other
+# field is `#[serde(default)]` in Strata's Preferences struct, so leaving it out
+# means "follow upstream", and new releases can add fields without this file
+# pinning them to a stale value.
+
+# Follow the active Omarchy theme instead of a bundled Strata palette. Strata
+# reads ~/.local/state/omarchy/current/{theme.name,theme/colors.toml} and maps
+# Quattro's background/foreground/accent/selection/color8 onto its nine tokens,
+# then watches that state for live theme switches -- so Strata restyles with the
+# rest of the desktop when install-theme.sh (or `omarchy theme set`) runs.
+#
+# Strata only auto-selects this mode when NO settings file exists at all. Once
+# any setting is saved the mode is whatever the file says, so setting it here
+# explicitly is what makes Omarchy-following durable rather than incidental.
+# Falls back to `theme` on its own if the Omarchy state is ever unavailable.
+mode = "omarchy"
+
+# The palette used only when the Omarchy state is missing. Upstream's default;
+# named here because `theme` has no serde default and must be present.
+theme = "azure-glow"
+
+# This is a dotfiles-managed machine -- ~/.config and friends are the working
+# set, so showing them by default is the point. Toggle live with Ctrl+H.
+show_hidden = true
+
+# install-strata.sh owns the binary: it resolves the latest tag, verifies the
+# SHA-256 and the gh attestation, and records the result in the version stamp at
+# ~/.local/share/strata/installed-version.
+#
+# Strata 0.7.0's in-app updater (Settings -> Updates) writes the binary behind
+# the installer's back, which leaves that stamp lying. On the default `stable`
+# channel that is merely wasteful -- the next provision reinstalls the same
+# version. On a prerelease channel it actively conflicts: the GitHub "latest"
+# endpoint the installer reads excludes prereleases, so a machine updated in-app
+# to v0.7.1-rc.2 would be silently DOWNGRADED to v0.7.0 on the next run.
+#
+# Keeping one updater avoids both. Set this to true (and re-run the installer
+# afterwards, or fix the stamp by hand) if you would rather update in-app.
+check_for_updates = false

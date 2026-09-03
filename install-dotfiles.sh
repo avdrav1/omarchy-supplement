@@ -37,6 +37,13 @@ if [ $? -eq 0 ]; then
   # The dotfiles repo still carries a starship package (its own peach/lavender
   # theme) -- stowing it here would symlink that over the preset, since this
   # installer runs first. Keep it out of both this list and the rm -rf above.
+  # Strata is deliberately NOT stowed, and ~/.config/strata is absent from the
+  # rm -rf above. install-strata.sh seeds settings.toml there as a real file
+  # because Strata saves preferences through an atomic_write that *rejects* a
+  # non-regular destination -- a stow symlink is neither followed nor replaced,
+  # so every change in its Settings UI would fail into a log warning nobody
+  # sees. Same "don't stow it" conclusion as starship above, but for a harder
+  # reason: this one breaks the app rather than just losing to it.
   # snappy-switcher's config dir gets folded into a single stow symlink, so
   # removing ~/.config/snappy-switcher/config.ini in the cleanup above would
   # delete the tracked file *through* that symlink, wiping it from the dotfiles
