@@ -44,7 +44,15 @@ fi
 # `git pull`, and the plugin payloads it stages live here too.
 if [ -d "$SRC_DIR/.git" ]; then
   echo "Updating Shibumi-Shell checkout in $SRC_DIR..."
-  git -C "$SRC_DIR" pull --ff-only
+  if git -C "$SRC_DIR" symbolic-ref -q HEAD >/dev/null; then
+    git -C "$SRC_DIR" pull --ff-only
+  else
+    # Pinned to a release tag (detached HEAD), where `git pull` refuses to run.
+    # Stay on releases: move to the newest v* tag instead.
+    git -C "$SRC_DIR" fetch --tags --quiet origin
+    latest_tag=$(git -C "$SRC_DIR" tag -l 'v*' --sort=-v:refname | head -n1)
+    [ -n "$latest_tag" ] && git -C "$SRC_DIR" checkout --quiet "$latest_tag"
+  fi
 else
   echo "Cloning Shibumi-Shell into $SRC_DIR..."
   git clone "$REPO_URL" "$SRC_DIR"

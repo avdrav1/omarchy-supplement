@@ -179,6 +179,11 @@ EXTRAS = [(weather_id, {"unit": "metric"}), (update_id, {})]
 V2_MAX = {"left": 13, "center": 4, "right": 13}
 V1_BASE = {"left": 7, "center": 1, "right": 7}
 V1_MAX = {"left": 9, "center": 1, "right": 9}
+V1_DEFAULT = {
+    "left": ["G1", "G2", "G3", "G4", "G5", "G6", "G7"],
+    "center": ["G8"],
+    "right": ["G9", "G10", "G11", "G14", "G12", "G13", "G15"],
+}
 REGIONS = ("left", "center", "right")
 
 bar = cfg.setdefault("bar", {})
@@ -278,9 +283,19 @@ else:
     # slot is structurally reserved for G8 and a dynamic group can only live in
     # one of the two "extra" slots each side allows. Centering is impossible
     # here -- put the clock on the right and say so.
-    order = sh.setdefault("order", {})
-    for region in REGIONS:
-        order.setdefault(region, [])
+    # Shibumi only writes `order` once the layout has been edited; until then it
+    # runs on LayoutModel.js defaultOrder(). Building from [] would leave
+    # G1..G15 out and the validator would reset the whole bar, so start from
+    # that default (keeping any dynamic groups) whenever a fixed group is absent.
+    order = sh.get("order") if isinstance(sh.get("order"), dict) else {}
+    present = {g for region in REGIONS for g in (order.get(region) or [])}
+    if not all("G%d" % n in present for n in range(1, 16)):
+        order = {
+            region: V1_DEFAULT[region]
+            + [g for g in (order.get(region) or []) if str(g).startswith("G:")]
+            for region in REGIONS
+        }
+    sh["order"] = order
     moving = {CLOCK, *extra_groups}
     for region in REGIONS:
         order[region] = strip(order[region], moving)

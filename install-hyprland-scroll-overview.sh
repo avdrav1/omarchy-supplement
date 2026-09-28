@@ -29,9 +29,14 @@ PLUGIN_REPO="https://github.com/yayuuu/hyprland-scroll-overview"
 PLUGIN_NAME="scrolloverview"
 PLUGIN_FALLBACK_REV="main"
 
-if ! command -v hyprpm >/dev/null 2>&1; then
-  echo "hyprpm not found (ships with Hyprland). Install Hyprland first."
+if ! command -v Hyprland >/dev/null 2>&1; then
+  echo "Hyprland not found. Install Hyprland first."
   exit 1
+fi
+# Arch split hyprpm out of the hyprland package (0.56.2-3), so an upgraded
+# machine has Hyprland but no hyprpm.
+if ! command -v hyprpm >/dev/null 2>&1; then
+  sudo pacman -S --noconfirm --needed hyprpm
 fi
 
 # hyprpm needs the toolchain to compile the plugin against Hyprland's headers.

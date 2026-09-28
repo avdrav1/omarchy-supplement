@@ -278,6 +278,11 @@ REGIONS = ("left", "center", "right")
 V2_MAX = {"left": 13, "center": 4, "right": 13}
 V1_BASE = {"left": 7, "center": 1, "right": 7}
 V1_MAX = {"left": 9, "center": 1, "right": 9}
+V1_DEFAULT = {
+    "left": ["G1", "G2", "G3", "G4", "G5", "G6", "G7"],
+    "center": ["G8"],
+    "right": ["G9", "G10", "G11", "G14", "G12", "G13", "G15"],
+}
 
 try:
     with open(path) as handle:
@@ -337,9 +342,20 @@ if str(bar.get("id", "")).startswith("hancore.shibumi") and isinstance(sh, dict)
     else:
         # v1 is rigid: 7+1+7 base slots hold G1..G15 exactly, and a dynamic
         # group can only occupy one of the two "extra" slots each side allows.
-        order = sh.setdefault("order", {})
+        # Shibumi only writes `order` once the layout has been edited; until
+        # then it runs on LayoutModel.js defaultOrder(). Building from [] would
+        # leave G1..G15 out and the validator would reset the whole bar, so
+        # start from that default (keeping dynamic groups) if any is absent.
+        order = sh.get("order") if isinstance(sh.get("order"), dict) else {}
+        present = {g for region in REGIONS for g in (order.get(region) or [])}
+        if not all("G%d" % n in present for n in range(1, 16)):
+            order = {
+                region: V1_DEFAULT[region]
+                + [g for g in (order.get(region) or []) if str(g).startswith("G:")]
+                for region in REGIONS
+            }
+        sh["order"] = order
         for region in REGIONS:
-            order.setdefault(region, [])
             order[region] = [g for g in order[region] if g != group]
         if len(order["right"]) >= V1_MAX["right"]:
             print("  note: no free Shibumi v1 extra slot for %s; skipped." % group)
