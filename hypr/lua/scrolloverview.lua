@@ -76,15 +76,18 @@ hl.config({
 })
 
 -- SUPER+G is the plugin's documented example bind, but it's taken here (Notion,
--- see bindings.lua), so the overview lives on SUPER+` instead.
+-- see bindings.lua), so the overview lives on ALT+` instead.
 --
--- SUPER+grave is ALSO fcitx5's default "Quick Phrase" trigger, and fcitx5 grabs
--- it at the input-method layer, so Hyprland never sees the conflict -- the
--- overview opens and a Quick Phrase prompt pops up on the same press. It is
--- unbound in the dotfiles repo (fcitx5/.config/fcitx5/conf/quickphrase.conf,
--- installed by install-dotfiles.sh); if the prompt reappears, that stow symlink
--- was likely clobbered by fcitx5-configtool.
-o.bind("SUPER + grave", "Workspace overview", plugin.overview("toggle"))
+-- It used to be SUPER+`, until Omarchy took that key for "Toggle scratchpad"
+-- (default/hypr/bindings/tiling.lua, beside SUPER+SHIFT+` "Move window to
+-- scratchpad"). o.bind adds rather than replaces, so both fired on one press.
+-- Unbinding Omarchy's would strand anything sent to the scratchpad with no key
+-- to bring it back, so the overview moved instead and SUPER+` stays stock.
+--
+-- (fcitx5's default Quick Phrase trigger, Super+grave, is still cleared by the
+-- dotfiles repo's fcitx5/.config/fcitx5/conf/quickphrase.conf -- it would now
+-- collide with the scratchpad toggle rather than the overview.)
+o.bind("ALT + grave", "Workspace overview", plugin.overview("toggle"))
 
 -- The plugin has built-in keyboard nav, but it wasn't picking up arrow keys
 -- here. Defining this submap replaces that built-in handling with explicit

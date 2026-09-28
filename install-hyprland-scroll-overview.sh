@@ -10,7 +10,7 @@
 # until `hyprpm update` rebuilds it. hypr/hyprpm-plugins.hook (installed below)
 # prints a reminder after any Hyprland upgrade.
 #
-# Hyprland wiring (the plugin config, the SUPER+grave bind, the scrolloverview
+# Hyprland wiring (the plugin config, the ALT+grave bind, the scrolloverview
 # submap and the ALT+1..9 submap_universal binds) is applied by
 # install-hyprland-overrides.sh, from hypr/lua/scrolloverview.lua on Lua
 # machines or hyprland-overrides.conf on hyprlang ones. Nothing for this plugin
@@ -151,4 +151,4 @@ if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
 fi
 
 echo "hyprland-scroll-overview installation complete."
-echo "Toggle the overview with SUPER+\` (grave)."
+echo "Toggle the overview with ALT+\` (grave)."

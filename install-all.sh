@@ -216,7 +216,7 @@ cat <<'EOF'
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
 
 5. Hyprland plugins (hyprpm):  after EVERY Hyprland upgrade, rebuild or the
-   scroll-overview plugin silently stops loading -- SUPER+` just does nothing.
+   scroll-overview plugin silently stops loading -- ALT+` just does nothing.
    Under the Lua config there is no error to notice: hypr/lua/scrolloverview.lua
    no-ops when the plugin is absent (the old .conf setup at least showed
    "Invalid dispatcher" in `hyprctl configerrors`). To rebuild:

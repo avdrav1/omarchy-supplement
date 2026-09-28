@@ -59,7 +59,7 @@ if [ $? -eq 0 ]; then
   stow vscode
   # Only quickphrase.conf is tracked -- it clears the fcitx5 "Quick Phrase"
   # addon's default Super+grave / Super+semicolon triggers, which collided with
-  # the workspace-overview bind on SUPER+` (hypr/lua/scrolloverview.lua): both
+  # the SUPER+` bind (now Omarchy's scratchpad toggle; it was the overview): both
   # fired on every press. Same folding trap as vscode above -- on a machine
   # where fcitx5 has never run, ~/.config/fcitx5 doesn't exist and stow would
   # fold the whole dir into one symlink, dumping fcitx5's runtime state
