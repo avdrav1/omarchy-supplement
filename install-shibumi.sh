@@ -59,19 +59,58 @@ else
 fi
 
 SUITE="$SRC_DIR/scripts/shibumi-suite"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/shibumi"
+
+# ── Recover an install too old to update ─────────────────────────────────────
+# Each suite release only updates from a fixed list of predecessor identities
+# (currently beta.11 and later). An older install -- e.g. a machine last set up
+# at v0.1.1-beta.7 -- makes `update` refuse with "installed identity is
+# unsupported" and change nothing, so this installer could never move it on.
+#
+# Upstream's documented fix (docs/install.md, "Supervised recovery"): uninstall
+# with the *exact* old revision recorded in install.json, keeping settings, then
+# install the current release. The old code runs from a throwaway worktree so
+# the main checkout stays where it is. Only the recorded revision is ever used
+# -- if it isn't a known commit we stop rather than guess.
+if { "$SUITE" status 2>&1 || true; } | grep -q 'installed identity is unsupported'; then
+  old_rev="$(jq -r '.sourceRevision // empty' "$STATE_DIR/install.json" 2>/dev/null || true)"
+  if [ -z "$old_rev" ] || ! git -C "$SRC_DIR" cat-file -e "$old_rev^{commit}" 2>/dev/null; then
+    echo "ERROR: Shibumi install is too old to update, and its recorded source" >&2
+    echo "revision (${old_rev:-none}) is not a commit in $SRC_DIR." >&2
+    echo "See 'Supervised recovery' in $SRC_DIR/docs/install.md." >&2
+    exit 1
+  fi
+  echo "Shibumi install ($(git -C "$SRC_DIR" describe --tags --always "$old_rev")) is too old to update;"
+  echo "uninstalling it with its own code (settings kept) before reinstalling..."
+
+  backup="$HOME/shibumi-backup-$(date +%s)"
+  mkdir -p "$backup"
+  cp -a "$HOME/.config/omarchy/shell.json" "$STATE_DIR" "$backup/"
+  echo "  Backed up shell.json and suite state to $backup"
+
+  old_tree="$(mktemp -d)"
+  trap 'git -C "$SRC_DIR" worktree remove --force "$old_tree" 2>/dev/null; rm -rf "$old_tree"' EXIT
+  git -C "$SRC_DIR" worktree add --quiet --detach "$old_tree" "$old_rev"
+  "$old_tree/scripts/shibumi-suite" uninstall --keep-settings --yes
+  git -C "$SRC_DIR" worktree remove --force "$old_tree"
+  trap - EXIT
+fi
 
 # ── Install or update the suite ──────────────────────────────────────────────
 # `install` is the first-run path; once installed, upstream's re-run path is
 # `update` (running `install` again errors with "already suite-managed"). Detect
 # which via `status`, whose line reads "Install state: not installed" before the
-# first install and "Install state: <version> (<hash>)" afterwards.
+# first install and "Install state: <version> (<hash>)" afterwards. (Captured
+# rather than piped: under pipefail a non-zero `status` exit would mask the
+# match and send a fresh machine down the update path.)
 #
 # Best-effort (|| true): after staging plugins to disk the suite also live-
 # rescans the running shell, which returns non-zero when omarchy-shell happens
 # to be down. The plugins are staged regardless and we restart the shell below,
 # so don't let that abort us -- the end-state check further down is the real
 # gate.
-if "$SUITE" status 2>/dev/null | grep -q 'Install state: not installed'; then
+suite_status="$("$SUITE" status 2>&1 || true)"
+if printf '%s\n' "$suite_status" | grep -q 'Install state: not installed'; then
   echo "Installing Shibumi suite (24 plugins)..."
   "$SUITE" install --yes || true
 else
