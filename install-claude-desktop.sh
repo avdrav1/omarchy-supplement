@@ -18,8 +18,13 @@ set -euo pipefail
 # binary package (its `provides=claude-desktop` alias means yay -S alone won't
 # swap it out for the real claude-desktop). `claude-desktop-debug` was the older
 # aaddrick split package; remove it before any parent.
+#
+# Query each package directly. The old `pacman -Qq | grep -qx "$pkg"` never
+# matched: grep -q exits on the first hit, pacman dies of SIGPIPE (141), and
+# pipefail turns that into "not installed" -- so the old build was never
+# removed and yay then failed on the unresolved conflict with it.
 for pkg in claude-desktop-debug claude-desktop-bin; do
-  if pacman -Qq | grep -qx "$pkg"; then
+  if pacman -Qq "$pkg" &>/dev/null; then
     echo "Removing superseded '$pkg' build..."
     sudo pacman -R --noconfirm "$pkg"
   fi
