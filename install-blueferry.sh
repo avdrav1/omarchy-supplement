@@ -306,24 +306,39 @@ def entry_id(entry):
 # not cosmetic -- Bar.qml reconciles the group layout against bar.layout with
 # followRegions, so a group whose bar.layout entry sits elsewhere is moved back
 # out of the region we put it in.
-existing = None
-for region in REGIONS:
-    keep = []
-    for entry in layout[region]:
-        if entry_id(entry) == plugin_id:
-            existing = entry if isinstance(entry, dict) else {"id": plugin_id}
-        else:
-            keep.append(entry)
-    layout[region] = keep
-layout["right"].append(existing if existing is not None else {"id": plugin_id})
+#
+# Already in the right region: leave it where it is, so a re-run does not keep
+# shuffling the widget to the end (and, on v2, to the last slot below).
+already_placed = any(entry_id(e) == plugin_id for e in layout["right"])
+if not already_placed:
+    existing = None
+    for region in REGIONS:
+        keep = []
+        for entry in layout[region]:
+            if entry_id(entry) == plugin_id:
+                existing = entry if isinstance(entry, dict) else {"id": plugin_id}
+            else:
+                keep.append(entry)
+        layout[region] = keep
+    layout["right"].append(existing if existing is not None else {"id": plugin_id})
 
-sh = bar.get("shibumi")
+# Since Shibumi 0.1.1-beta.14 its settings live in the hancore.shibumi.state
+# entry of the top-level plugins array; bar.shibumi is a stale pre-beta.14 copy
+# the runtime ignores. Reading it made a v2 ("full") machine look like v1 (it
+# has no presentation key, so shellStyle fell back to "shibumi") and sent it
+# down the v1 path. Use the live block; fall back only on pre-beta.14 installs.
+_state = next((p for p in cfg.get("plugins") or [] if isinstance(p, dict) and p.get("id") == "hancore.shibumi.state"), None)
+sh = _state.get("shibumi") if _state is not None else bar.get("shibumi")
 if str(bar.get("id", "")).startswith("hancore.shibumi") and isinstance(sh, dict):
     style = str(sh.get("presentation", {}).get("shellStyle") or "shibumi")
     if style != "shibumi":
         v2 = sh.setdefault("v2Layout", {})
         for region in REGIONS:
             v2.setdefault(region, [])
+        if already_placed and group in v2["right"]:
+            # Already has its slot; keep it (see already_placed above).
+            print("  %s already placed on the right of the bar." % plugin_id)
+            raise SystemExit(0)
         for region in REGIONS:
             v2[region] = [g for g in v2[region] if g != group]
         # Empty strings are Shibumi's own padding slots; collapse them, append,
@@ -403,7 +418,8 @@ import json, sys
 
 path, plugin_id = sys.argv[1], sys.argv[2]
 try:
-    bar = json.load(open(path)).get("bar", {})
+    cfg = json.load(open(path))
+    bar = cfg.get("bar", {})
 except (OSError, ValueError):
     raise SystemExit(0)
 loaded = any(
@@ -414,7 +430,13 @@ loaded = any(
 if not loaded:
     print("  warning: %s is not in bar.layout; the shell will not load it." % plugin_id)
     raise SystemExit(0)
-sh = bar.get("shibumi")
+# Since Shibumi 0.1.1-beta.14 its settings live in the hancore.shibumi.state
+# entry of the top-level plugins array; bar.shibumi is a stale pre-beta.14 copy
+# the runtime ignores. Reading it made a v2 ("full") machine look like v1 (it
+# has no presentation key, so shellStyle fell back to "shibumi") and sent it
+# down the v1 path. Use the live block; fall back only on pre-beta.14 installs.
+_state = next((p for p in cfg.get("plugins") or [] if isinstance(p, dict) and p.get("id") == "hancore.shibumi.state"), None)
+sh = _state.get("shibumi") if _state is not None else bar.get("shibumi")
 if not isinstance(sh, dict):
     raise SystemExit(0)
 style = str(sh.get("presentation", {}).get("shellStyle") or "shibumi")

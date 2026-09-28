@@ -97,7 +97,16 @@ fi
 # would fail on the existing directory, so update the checkout instead.
 if [ -d "$PLUGIN_DIR/.git" ]; then
   echo "Updating $PLUGIN_ID..."
-  omarchy plugin update "$PLUGIN_ID" --yes
+  # Non-fatal: `omarchy plugin update` only fast-forwards, and upstream has
+  # rewritten its history (v1.4.x) -- a checkout from before that, or one with a
+  # hand-patched file, can never fast-forward. The installed version keeps
+  # working, and the bar-layout work below still has to run, so warn and go on
+  # (same policy as install-bar-plugins.sh). To take the update anyway:
+  #   git -C "$PLUGIN_DIR" fetch && git -C "$PLUGIN_DIR" reset --hard origin/main
+  omarchy plugin update "$PLUGIN_ID" --yes || {
+    echo "  warning: could not update $PLUGIN_ID (local changes or rewritten upstream);" >&2
+    echo "  keeping the installed version. See the comment above to force it." >&2
+  }
 else
   echo "Installing $PLUGIN_ID from $REPO_URL..."
   omarchy plugin add "$REPO_URL" --enable --yes
@@ -193,7 +202,13 @@ bar = cfg.setdefault("bar", {})
 layout = bar.setdefault("layout", {})
 for region in REGIONS:
     layout.setdefault(region, [])
-sh = bar.setdefault("shibumi", {})
+# Since Shibumi 0.1.1-beta.14 its settings live in the hancore.shibumi.state
+# entry of the top-level plugins array; bar.shibumi is a stale pre-beta.14 copy
+# the runtime ignores. Reading it made a v2 ("full") machine look like v1 (it
+# has no presentation key, so shellStyle fell back to "shibumi") and sent it
+# down the v1 path. Use the live block; fall back only on pre-beta.14 installs.
+_state = next((p for p in cfg.get("plugins") or [] if isinstance(p, dict) and p.get("id") == "hancore.shibumi.state"), None)
+sh = _state.setdefault("shibumi", {}) if _state is not None else bar.setdefault("shibumi", {})
 widgets = sh.setdefault("widgets", {})
 
 # Shibumi's state service picks the live variant off shellStyle: "shibumi" is
@@ -254,22 +269,31 @@ if variant == "v2":
     v2 = sh.setdefault("v2Layout", {})
     for region in REGIONS:
         v2.setdefault(region, [])
-    moving = {CLOCK, CENTER_GROUP, *extra_groups}
+    # G8 already parked off-center (a previous run): leave it in its slot, so a
+    # re-run is a no-op instead of shuffling it to the end of the right run.
+    parked = any(CENTER_GROUP in v2[r] for r in ("left", "right"))
+    moving = {CLOCK, *extra_groups} | (set() if parked else {CENTER_GROUP})
     for region in REGIONS:
         v2[region] = strip(v2[region], moving)
 
     # Weather left of the clock, update dot right of it -- symmetric flanks so
     # the run stays centered on the clock (see the header note).
+    # Keep whatever else already sits in the center (e.g. omaplug) after them,
+    # rather than overwriting the run -- a displaced group would be re-placed
+    # by the reconciler wherever it finds a slot. Anything past the cap goes to
+    # the right run instead.
     center = [extra_groups[0], CLOCK, extra_groups[1]]
-    if len(center) > V2_MAX["center"]:
-        sys.exit("center run holds at most %d widgets" % V2_MAX["center"])
-    v2["center"] = center
+    others = [g for g in v2["center"] if g]
+    room = V2_MAX["center"] - len(center)
+    v2["center"] = center + others[:room]
+    if others[room:]:
+        v2["right"] = [g for g in v2["right"] if g] + others[room:]
 
     # Rebuild the right run as everything already there plus the hidden G8,
     # parked last. Empty-string slots are Shibumi's own padding and are
     # restored afterwards up to the cap.
-    right = [g for g in v2["right"] if g] + [CENTER_GROUP]
-    if len(right) > V2_MAX["right"]:
+    right = [g for g in v2["right"] if g] + ([] if parked else [CENTER_GROUP])
+    if not parked and len(right) > V2_MAX["right"]:
         # No room on the right; park the hidden group on the left instead,
         # where the cap is the same but the run is usually shorter.
         right.remove(CENTER_GROUP)
@@ -396,7 +420,8 @@ python3 - "$SHELL_JSON" "$PLUGIN_ID" <<'PY'
 import json, sys
 
 path, plugin_id = sys.argv[1], sys.argv[2]
-bar = json.load(open(path)).get("bar", {})
+cfg = json.load(open(path))
+bar = cfg.get("bar", {})
 loaded = any(
     (entry.get("id") if isinstance(entry, dict) else entry) == plugin_id
     for region in ("left", "center", "right")
@@ -405,7 +430,13 @@ loaded = any(
 if not loaded:
     sys.exit("ERROR: %s is not in bar.layout; the shell will not load it." % plugin_id)
 
-sh = bar.get("shibumi")
+# Since Shibumi 0.1.1-beta.14 its settings live in the hancore.shibumi.state
+# entry of the top-level plugins array; bar.shibumi is a stale pre-beta.14 copy
+# the runtime ignores. Reading it made a v2 ("full") machine look like v1 (it
+# has no presentation key, so shellStyle fell back to "shibumi") and sent it
+# down the v1 path. Use the live block; fall back only on pre-beta.14 installs.
+_state = next((p for p in cfg.get("plugins") or [] if isinstance(p, dict) and p.get("id") == "hancore.shibumi.state"), None)
+sh = _state.get("shibumi") if _state is not None else bar.get("shibumi")
 if not str(bar.get("id", "")).startswith("hancore.shibumi") or not sh:
     print("Stock bar: centerAnchor = %s" % bar.get("centerAnchor"))
     raise SystemExit(0)
