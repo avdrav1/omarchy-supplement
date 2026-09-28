@@ -91,7 +91,33 @@ fi
 # installheaders`), so it has to come first. It doubles as the refresh path for
 # an already-added plugin, so running it unconditionally covers both cases --
 # which is why the branch below no longer calls it separately.
-hyprpm update
+#
+# Plain `hyprpm update` trusts its own state.toml hash, and that can be ahead of
+# the headers actually on disk: on alienware (2026-09-28) state.toml said
+# aquamarine 0.15 while headersRoot's version.h, installed 2026-08-23, still said
+# 0.14.0. hyprpm skipped the header refresh, rebuilt the plugin against the stale
+# headers, and printed "Loaded scrolloverview" -- but Hyprland rejected the .so
+# with "[he] Version mismatch" and the overview bind silently never registered.
+# So compare the headers' version.h with what the running Hyprland was built
+# against (hyprctl version -j), and force a full header rebuild when they differ.
+hyprpm_update() {
+  local vh built headers
+  vh="$(find /var/cache/hyprpm/"$USER"/headersRoot -name version.h -path '*hyprland/src/*' 2>/dev/null | head -1)"
+  built="$(hyprctl version -j 2>/dev/null | jq -r '[.commit, .buildAquamarine, .buildHyprutils, .buildHyprlang, .buildHyprcursor, .buildHyprgraphics] | join(" ")' 2>/dev/null || true)"
+  if [ -n "$vh" ] && [ -n "$built" ]; then
+    headers="$(for k in GIT_COMMIT_HASH AQUAMARINE_VERSION HYPRUTILS_VERSION HYPRLANG_VERSION HYPRCURSOR_VERSION HYPRGRAPHICS_VERSION; do
+      sed -n "s/^#define $k *\"\(.*\)\"/\1/p" "$vh"
+    done | paste -sd' ')"
+    if [ "$headers" != "$built" ]; then
+      echo "hyprpm headers are stale (headers: $headers; running Hyprland: $built)."
+      echo "Forcing a header + plugin rebuild."
+      hyprpm update -f
+      return
+    fi
+  fi
+  hyprpm update
+}
+hyprpm_update
 
 # `hyprpm add` is not re-runnable -- it errors if the repo is already present --
 # so guard on the plugin already being known to hyprpm.
