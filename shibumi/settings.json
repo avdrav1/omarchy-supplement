@@ -1,0 +1,183 @@
+{
+  "state": {
+    "identityVersion": 3,
+    "launcher": {
+      "icon": "omarchy",
+      "mode": "icon",
+      "text": "shibumi"
+    },
+    "layoutProtection": {
+      "v1": false,
+      "v2": false
+    },
+    "order": {
+      "center": [
+        "G8"
+      ],
+      "left": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ],
+      "right": [
+        "G9",
+        "G10",
+        "G11",
+        "G14",
+        "G12",
+        "G13",
+        "G15"
+      ]
+    },
+    "picker": {
+      "imageStyle": "omarchy",
+      "mediaStyle": "carousel",
+      "style": "carousel"
+    },
+    "plugins": {
+      "favorites": []
+    },
+    "presentation": {
+      "accent": "color01",
+      "border": true,
+      "frost": false,
+      "panelBorder": true,
+      "radius": "large",
+      "shadow": false,
+      "shellStyle": "full",
+      "v1Border": true,
+      "v2Border": true,
+      "v2ShellStyle": "full"
+    },
+    "reactor": {
+      "mode": 0
+    },
+    "splits": {
+      "boundaries": [
+        false,
+        false
+      ],
+      "center": [],
+      "left": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "right": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "v1SlotRoles": {
+      "center": [
+        "base"
+      ],
+      "left": [
+        "base",
+        "base",
+        "base",
+        "base",
+        "base",
+        "base",
+        "base"
+      ],
+      "right": [
+        "base",
+        "base",
+        "base",
+        "base",
+        "base",
+        "base",
+        "base"
+      ]
+    },
+    "v2Boundaries": [
+      false,
+      false
+    ],
+    "v2Layout": {
+      "center": [
+        "G8",
+        "G:omarchy.elsewhen"
+      ],
+      "left": [
+        "G1",
+        "G2",
+        "G3",
+        "",
+        "G5",
+        "G6",
+        "G4",
+        "G7",
+        "",
+        ""
+      ],
+      "right": [
+        "G9",
+        "G10",
+        "",
+        "G14",
+        "",
+        "",
+        "G11",
+        "G12",
+        "G13",
+        "G15",
+        "G16",
+        "G18",
+        "G17"
+      ]
+    },
+    "version": 1,
+    "widgets": {
+      "G14": {
+        "enabled": false
+      },
+      "G15": {
+        "enabled": false
+      },
+      "G16": {
+        "source": "cpu",
+        "unit": "metric"
+      },
+      "G7": {
+        "enabled": false
+      },
+      "G8": {
+        "omarchy.clock": {
+          "clock12h": true
+        },
+        "omarchy.weather": {
+          "unit": "imperial"
+        }
+      }
+    },
+    "workspace": {
+      "mode": "10",
+      "style": "default",
+      "version": 1
+    }
+  },
+  "barWidgets": {
+    "center": [
+      {
+        "id": "omarchy.keyboard-layout"
+      },
+      {
+        "id": "omarchy.elsewhen",
+        "zones": "New York|America/New_York, London|Europe/London, Dubai|Asia/Dubai, Tokyo|Asia/Tokyo, Los Angeles|America/Los_Angeles"
+      }
+    ]
+  }
+}

@@ -40,23 +40,30 @@ if ((${#missing[@]})); then
 fi
 
 # ── Source checkout ──────────────────────────────────────────────────────────
-# Keep a persistent clone: `shibumi-suite update` re-runs from it after a
-# `git pull`, and the plugin payloads it stages live here too.
+# Keep a persistent clone: `shibumi-suite update` re-runs from it, and the
+# plugin payloads it stages live here too.
+#
+# Always install the LATEST RELEASE TAG, never `main` -- including on a fresh
+# clone or a checkout still on a branch. Upstream: "Do not install or update
+# from main." Each release only updates from a whitelist of release identities,
+# so an install staged from an untagged main commit is rejected by every later
+# update/repair/uninstall. versionsort.suffix=- ranks a final vX.Y.Z above its
+# vX.Y.Z-beta.N prereleases.
 if [ -d "$SRC_DIR/.git" ]; then
-  echo "Updating Shibumi-Shell checkout in $SRC_DIR..."
-  if git -C "$SRC_DIR" symbolic-ref -q HEAD >/dev/null; then
-    git -C "$SRC_DIR" pull --ff-only
-  else
-    # Pinned to a release tag (detached HEAD), where `git pull` refuses to run.
-    # Stay on releases: move to the newest v* tag instead.
-    git -C "$SRC_DIR" fetch --tags --quiet origin
-    latest_tag=$(git -C "$SRC_DIR" tag -l 'v*' --sort=-v:refname | head -n1)
-    [ -n "$latest_tag" ] && git -C "$SRC_DIR" checkout --quiet "$latest_tag"
-  fi
+  echo "Fetching Shibumi-Shell releases into $SRC_DIR..."
+  git -C "$SRC_DIR" fetch --tags --force --quiet origin
 else
   echo "Cloning Shibumi-Shell into $SRC_DIR..."
   git clone "$REPO_URL" "$SRC_DIR"
 fi
+latest_tag="$(git -C "$SRC_DIR" -c versionsort.suffix=- tag -l 'v*' --sort=-v:refname | head -n1)"
+if [ -z "$latest_tag" ]; then
+  echo "ERROR: no release tags found in $SRC_DIR." >&2
+  exit 1
+fi
+latest_rev="$(git -C "$SRC_DIR" rev-parse "$latest_tag^{commit}")"
+echo "Checking out Shibumi $latest_tag..."
+git -C "$SRC_DIR" checkout --quiet --detach "$latest_tag"
 
 SUITE="$SRC_DIR/scripts/shibumi-suite"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/shibumi"
@@ -109,10 +116,42 @@ fi
 # to be down. The plugins are staged regardless and we restart the shell below,
 # so don't let that abort us -- the end-state check further down is the real
 # gate.
+#
+# Personal settings: Shibumi keeps them in ~/.config/omarchy/shell.json, which
+# neither this repo nor the dotfiles track, so a fresh install comes up with
+# defaults. shibumi/settings.json is the tracked copy (capture it with
+# ./save-shibumi-settings.sh):
+#   state      -> the State plugin entry's `shibumi` object (layout, widgets,
+#                 presentation, picker, workspace mode...)
+#   barWidgets -> non-Shibumi widgets (e.g. omarchy.keyboard-layout) appended
+#                 to each bar section if not already there
+# Applied only on a first install, so re-runs never clobber control-center
+# changes that haven't been saved back yet.
+SETTINGS_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/shibumi/settings.json"
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+apply_settings() {
+  [ -f "$SETTINGS_FILE" ] || return 0
+  echo "Applying saved Shibumi settings from $SETTINGS_FILE..."
+  local tmp
+  tmp="$(mktemp)"
+  jq --slurpfile saved "$SETTINGS_FILE" '
+    $saved[0] as $s
+    | (.plugins[] | select(.id == "hancore.shibumi.state") | .shibumi) = $s.state
+    | reduce ($s.barWidgets // {} | to_entries[]) as $sec (.;
+        reduce $sec.value[] as $w (.;
+          if any(.bar.layout[$sec.key][]?; .id == $w.id) then .
+          else .bar.layout[$sec.key] += [$w] end))
+  ' "$SHELL_JSON" >"$tmp"
+  # cat (not mv) keeps shell.json's inode and 0600 mode.
+  cat "$tmp" >"$SHELL_JSON"
+  rm -f "$tmp"
+}
+
 suite_status="$("$SUITE" status 2>&1 || true)"
 if printf '%s\n' "$suite_status" | grep -q 'Install state: not installed'; then
   echo "Installing Shibumi suite (24 plugins)..."
   "$SUITE" install --yes || true
+  apply_settings
 else
   echo "Shibumi already installed; updating plugin set..."
   "$SUITE" update --yes || true
@@ -189,6 +228,10 @@ if ! printf '%s\n' "$status" | grep -q 'Managed plugins:' \
   printf '%s\n' "$status" >&2
   exit 1
 fi
+if ! printf '%s\n' "$status" | grep -q "^Install state: .*($latest_rev)"; then
+  echo "ERROR: Shibumi is installed but not at $latest_tag ($latest_rev). Suite status:" >&2
+  printf '%s\n' "$status" >&2
+  exit 1
+fi
 
-echo "Shibumi Shell installed. Update later with:"
-echo "  git -C \"$SRC_DIR\" pull --ff-only && \"$SUITE\" update --yes"
+echo "Shibumi Shell $latest_tag installed. Re-run this script to update to the latest release."
