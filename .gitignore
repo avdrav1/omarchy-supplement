@@ -2,3 +2,7 @@
 .stfolder/syncthing-folder-063adb.txt
 .claude/settings.local.json
 *.tmp
+
+# 66MB omarchy-dev r2014 rollback kept locally only. Obsolete since r6663 fixed
+# the third-party plugin sandbox; never shipped to other machines.
+/pkg-hold/

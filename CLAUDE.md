@@ -20,6 +20,13 @@ in their respective areas.
 - `./install-all.sh` — provision a full machine. It `cd`s to its own dir first,
   then runs the individual installers in dependency order (shell/tooling →
   runtimes/db → apps → stow/dotfiles/hyprland overrides → set-shell → theme).
+  It first `git pull --ff-only`s this repo and re-execs itself if HEAD moved
+  (`install-dotfiles.sh` pulls `~/dotfiles` the same way), so **uncommitted or
+  unpushed changes never reach another machine** — commit and push. Set
+  `SUPPLEMENT_NO_PULL=1` to test local changes without pulling.
+- The alienware host is the **reference machine**: laptops should end up
+  looking like it. When something is set up there by hand (a widget, app,
+  theme, bind), give it an installer here or it will not reach the fleet.
 - `./install-<concern>.sh` — run a single installer. Each targets one concern
   and is written to be re-runnable (guards with `command -v`, `pacman -Qi`,
   `asdf plugin list`, presence checks before acting).

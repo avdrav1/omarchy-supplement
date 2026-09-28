@@ -27,9 +27,13 @@ setup is needed. The modules are:
 - `init.lua` — entry point, requires the rest
 - `monitors.lua` — resolves the per-host scale by hostname
 - `input.lua` — keyboard, touchpad, cursor, DPMS
-- `bindings.lua` — terminal/browser/web-app binds, vim-style focus, Snappy Switcher
+- `bindings.lua` — terminal/browser/web-app binds, vim-style focus, Strata binds
 - `scrolloverview.lua` — hyprpm plugin config, binds, and submap (no-ops when the
   plugin isn't built)
+- `quickswitch.lua` — **required last**: loads the QuickSwitch plugin's own
+  bindings file, which takes `SUPER+TAB` off Omarchy's "next workspace" default
+  (`ALT+TAB` keeps its stock cycle-next behavior). No-ops when the plugin isn't
+  installed, so machines without it are unaffected
 
 > **Changes must be made in both trees** until every machine has migrated.
 

@@ -53,27 +53,17 @@ o.bind("SUPER + J", "Focus on below window", hl.dsp.focus({ direction = "d" }))
 -- cheat sheet (default SUPER+K) to SUPER+SHIFT+K.
 o.bind("SUPER + SHIFT + K", "Show key bindings", "omarchy-menu-keybindings")
 
--- Snappy Switcher (fast Alt+Tab window switcher). Installed via
--- install-snappy-switcher.sh; user config.ini comes from the dotfiles repo.
--- Replaces Omarchy's ALT+TAB (cycle windows) and SUPER+TAB (next workspace).
--- The daemon is a single-instance server: it binds
--- $XDG_RUNTIME_DIR/snappy-switcher.sock, and a second instance *unlinks and
--- takes over* that socket, killing the first. So never start it raw when the
--- packaged systemd user unit may already have. Delegate to the unit (a no-op
--- when it is already running) and fall back to a direct start only on machines
--- whose snappy-switcher package predates the unit.
--- install-snappy-switcher.sh repairs the unit's sandbox and enables it.
-o.exec_on_start("systemctl --user start snappy-switcher.service || snappy-switcher --daemon")
-
-hl.unbind("ALT + TAB")
-hl.unbind("SUPER + TAB")
-
-o.bind("ALT + TAB", "Snappy Switcher Next", "snappy-switcher next --mod alt")
-o.bind("SUPER + TAB", "Snappy Switcher Workspace Next", "snappy-switcher next --workspace --mod super")
+-- TAB is deliberately left alone here. This block used to hand ALT+TAB and
+-- SUPER+TAB to Snappy Switcher; that package is no longer installed by this
+-- repo. QuickSwitch (supplement.quickswitch, required last from init.lua) takes
+-- SUPER+TAB for its preview switcher, and ALT+TAB falls back to Omarchy's stock
+-- "focus next window / bring to top" from default/hypr/bindings/tiling.lua.
 
 -- Strata file manager (Miller-column, keyboard-first). Installed via
 -- install-strata.sh, which also writes the .desktop entry and makes Strata the
--- XDG handler for inode/directory.
+-- XDG handler for the file-manager MIME types (folders, mounts, file:// and
+-- trash://). Archive types stay with Nautilus: Strata extracts only from its
+-- right-click menu and would otherwise just reveal a .zip in its parent folder.
 --
 -- Replaces Omarchy's two Nautilus binds. Both are unbound first -- o.bind adds
 -- rather than replaces, so skipping the unbind launches Nautilus *and* Strata
@@ -89,3 +79,23 @@ hl.unbind("SUPER + ALT + SHIFT + F")
 o.bind("SUPER + SHIFT + F", "File manager", "uwsm app -- strata")
 o.bind("SUPER + ALT + SHIFT + F", "File manager (cwd)",
   "uwsm app -- strata \"$(omarchy-cmd-terminal-cwd)\"")
+
+-- BlueFerry -- an iPhone's SMS/RCS/iMessage over Bluetooth. Installed by
+-- install-blueferry.sh, which also places its widget on the bar.
+--
+-- No unbind needed: SUPER+M is free in stock Omarchy. SUPER+SHIFT+M is Music
+-- and SUPER+ALT+SHIFT+M the music TUI, so this sits in the same mnemonic
+-- family without colliding with either.
+--
+-- Deliberately the GTK client, not blueferry-quickshell: it is a Gio
+-- single-instance application, so a second press raises the window it already
+-- opened rather than starting a second client, and it is an ordinary toplevel
+-- Hyprland can tile. The Quickshell client is what the bar widget drives.
+-- Silently does nothing when BLUEFERRY_CLIENTS left the GTK package out.
+o.bind("SUPER + M", "Messages (BlueFerry)", "uwsm app -- blueferry-gtk")
+
+-- Cycle audio outputs with SUPER+mute as well as Omarchy's stock SHIFT+mute
+-- (default/hypr/bindings/media.lua) -- same command, a key that is easier to
+-- hit one-handed. locked = true so it also works on the lock screen. SUPER+mute
+-- is unbound in stock Omarchy, so no unbind is needed.
+o.bind("SUPER + XF86AudioMute", "Switch audio output", "omarchy-audio-output-switch", { locked = true })

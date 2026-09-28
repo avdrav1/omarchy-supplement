@@ -5,6 +5,28 @@
 # ~/omarchy-supplement/install-all.sh from $HOME).
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
+# Pull this repo first, so a laptop re-running install-all.sh applies the fleet's
+# current config rather than whatever it last checked out. Syncthing is not a
+# reliable carrier (see .stignore -- it deliberately skips .git, and a host can
+# have no folders configured at all), so GitHub is the source of truth.
+#
+# Fast-forward only: a machine with local commits or edits keeps them and gets a
+# warning instead of a merge. When HEAD moves, re-exec so the rest of the run is
+# the NEW install-all.sh, not the copy bash already has in memory.
+# SUPPLEMENT_NO_PULL=1 skips this (e.g. testing uncommitted changes).
+if [ "${SUPPLEMENT_NO_PULL:-0}" = 0 ] && [ -d .git ]; then
+  _before=$(git rev-parse HEAD 2>/dev/null)
+  if git pull --ff-only --quiet 2>/dev/null; then
+    if [ "$(git rev-parse HEAD)" != "$_before" ]; then
+      echo "==> omarchy-supplement updated ($(git log --oneline -1)); restarting."
+      SUPPLEMENT_NO_PULL=1 exec "$0" "$@"
+    fi
+  else
+    echo "!! Could not fast-forward omarchy-supplement (local changes, diverged" >&2
+    echo "!! history, or offline). Continuing with the checked-out version." >&2
+  fi
+fi
+
 # A repo section declared twice in pacman.conf makes libalpm refuse to register
 # that database. pacman itself only warns and carries on, but yay treats the
 # failed registration as fatal and exits before doing anything -- so every AUR
@@ -104,13 +126,15 @@ run ./install-github-desktop.sh
 run ./install-claude-code.sh
 run ./install-warp-terminal.sh
 run ./install-claude-desktop.sh
-run ./install-snappy-switcher.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
 run ./install-vivaldi.sh
 run ./install-vscode.sh
 run ./install-obsidian.sh
 run ./install-slack.sh
+# Apps + web apps the reference machine has that no dedicated installer covers.
+# Needs yay (Omarchy base) and omarchy-webapp-install; no other ordering needs.
+run ./install-apps.sh
 # Installed from a GitHub release rather than the AUR, so it only needs curl and
 # the pacman deps -- no ordering constraint against the runtimes above. Kept
 # before install-hyprland-overrides.sh purely so the binary exists by the time
@@ -132,12 +156,26 @@ run ./install-aerc-mail.sh
 run ./set-shell.sh
 
 run ./install-theme.sh
-# After the theme so Shibumi picks up Dos-Moos colors. install-shibumi.sh also
+# After the theme so Shibumi picks up the Solitude colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
 run ./install-shibumi.sh
 # After Shibumi: it branches on which bar is installed, and rewrites the group
 # layout Shibumi's installer has just laid down.
 run ./install-sync-calendar.sh
+# After Shibumi and the calendar clock: it appends its bar widget to the same
+# shell.json group layout those two lay down, and reads the run's length to find
+# a free slot -- so it has to see the final arrangement, not an intermediate one.
+run ./install-blueferry.sh
+# After everything that lays out bar groups (Shibumi, calendar clock, BlueFerry):
+# the remaining third-party widgets only get placed when not already on the bar,
+# and Shibumi's reconciler then fills whatever v2Layout slots are still free --
+# so the widgets with dedicated installers above get first claim on the slots.
+run ./install-bar-plugins.sh
+# After Shibumi so omarchy-shell is settled. Unlike the bar installers above it is a
+# *service* plugin, so it only needs shell.json's `plugins` array and never
+# touches the bar layout -- but it still wants to land before the final shell
+# restart below. Its Hyprland binds come from install-hyprland-overrides.sh.
+run ./install-quickswitch.sh
 # LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
 # Shibumi's installer rewrites, so it has to run after that settles -- and its
 # shell restart should be the final one of the provision.
@@ -208,11 +246,28 @@ cat <<'EOF'
    Google Workspace hides the secret address until an admin sets Calendar ->
    Sharing settings -> External sharing options to one of the bottom two.
 
-8. Gmail / aerc (OAuth2, one-time per machine):
+8. BlueFerry (iPhone messages):  pairing is interactive and per machine.
+   Keep the iPhone unlocked on Settings -> Bluetooth, press SUPER+M (or run
+   `blueferry pair-setup`), then Scan -> select the phone -> Pair and confirm
+   the same code on both sides; it can take ~15s to appear. Afterwards tap the
+   (i) beside this computer ON THE PHONE and enable "Show Message
+   Notifications" and "Sync Contacts" -- if those toggles are missing, back out
+   to the device list and reopen the (i) page a few times. Approve "Allow
+   System Notifications" and the desktop wallet prompt too.
+   Without the notification permission, messages and contacts still work but a
+   group message can look like a direct one from whoever sent it.
+   Check with `blueferry doctor` / `journalctl --user -u blueferry -f`.
+
+9. Gmail / aerc (OAuth2, one-time per machine):
    - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
      screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
    - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
    - oama authorize google <addr>  (per account), then `mbsync -a` and open aerc.
+
+10. Bar widgets (install-bar-plugins.sh), each signed in from its own panel:
+   NordVPN (log out/in first -- the nordvpn group is new), Omamail (mail
+   account), Omaspotify (Spotify Premium), Syncthing (pair devices), Claude
+   usage (needs `claude` logged in). Apps: 1Password, Discord, Codex.
 
 ============================================================
 EOF

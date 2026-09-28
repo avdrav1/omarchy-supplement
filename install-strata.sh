@@ -165,11 +165,40 @@ else
   echo "strata: $SETTINGS_TEMPLATE not found; leaving Strata on its own defaults."
 fi
 
-# ── Desktop entry + folder handler ───────────────────────────────────────────
+# ── Desktop entry + file-manager MIME types ──────────────────────────────────
 # Generated here rather than stowed from the dotfiles repo: it is derived from
 # the install (and rewritten whenever this script changes it), not hand-edited
 # config. Exec is the bare binary name so the entry stays host-independent --
 # ~/.local/bin is on PATH for the graphical session via the login shell.
+#
+# MIMES is the set Strata is made the default for, and is deliberately narrower
+# than the one Nautilus claims. Each entry was verified by handing the URI to
+# the binary and watching `strata::adapters::local_files` actually load it:
+#
+#   inode/directory        the folder handler proper
+#   x-directory/normal     the legacy alias; older GTK/Qt apps still resolve
+#                          folders through it, and nothing claimed it before
+#   inode/mount-point      removable media and other mounts
+#   x-scheme-handler/file  file:// URIs, e.g. a browser's "Show in folder"
+#   x-scheme-handler/trash loads with backend=trash, so this is real support
+#
+# Deliberately NOT claimed:
+#   - The 24 archive types (application/zip, application/x-compressed-tar, ...)
+#     stay with Nautilus. Strata extracts only from its right-click menu; handed
+#     an archive path it reveals the file in its parent folder instead of
+#     unpacking it, which would make double-clicking a .zip a regression.
+#   - recent:// and starred:// produce no directory load at all, and
+#     application/x-gnome-saved-search is a Nautilus-private format.
+#   - network:// and computer:// do load, but return an empty or misleading
+#     listing, so they are left to whatever GVFS-aware app is installed.
+MIMES=(
+  inode/directory
+  x-directory/normal
+  inode/mount-point
+  x-scheme-handler/file
+  x-scheme-handler/trash
+)
+
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 cat >"$DESKTOP_FILE" <<EOF
 [Desktop Entry]
@@ -181,21 +210,49 @@ Icon=system-file-manager
 Terminal=false
 Type=Application
 Categories=Utility;FileManager;
-MimeType=inode/directory;
+MimeType=$(IFS=';'; echo "${MIMES[*]};")
 StartupNotify=true
 EOF
+
+# Snapshot the current handlers BEFORE the entry lands. Once Strata's MimeType
+# line claims a type it has no other claimant, update-desktop-database alone
+# makes `xdg-mime query default` answer Strata off mimeinfo.cache -- so querying
+# afterwards reports every type as already ours and writes no explicit default
+# at all. That implicit answer holds only while Strata is the sole claimant;
+# installing anything else with FileManager in its Categories makes the winner
+# arbitrary. Capture first, then write real mimeapps.list entries below.
+declare -A PREV_HANDLER=()
+for mime in "${MIMES[@]}"; do
+  PREV_HANDLER[$mime]="$(xdg-mime query default "$mime" 2>/dev/null || true)"
+done
 
 update-desktop-database "$(dirname "$DESKTOP_FILE")" 2>/dev/null || true
 
 # Make Strata the handler for folders opened by other applications. This is what
 # makes it the file manager on legacy (hyprlang) machines too, where the
 # SUPER+SHIFT+F bind is not available -- see the NOTE in hyprland-overrides.conf.
-PREV_HANDLER="$(xdg-mime query default inode/directory 2>/dev/null || true)"
-xdg-mime default "$DESKTOP_ID" inode/directory
+#
+# Keyed off an explicit [Default Applications] line rather than xdg-mime query,
+# for the cache reason above: the query cannot distinguish "we set this" from
+# "we are simply the only candidate". Matched with grep -x so the trailing-";"
+# lines under [Added Associations] never count as a default.
+MIMEAPPS="${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list"
+DEFAULTS="$(awk '/^\[Default Applications\]/{f=1;next} /^\[/{f=0} f' "$MIMEAPPS" 2>/dev/null || true)"
 
-if [ "$PREV_HANDLER" = "$DESKTOP_ID" ]; then
-  echo "strata: already the inode/directory handler."
+# Reported per-type rather than as a single line: a machine provisioned before
+# this list grew already has inode/directory pointing at Strata, and the
+# interesting output is which of the remaining types just changed hands.
+CHANGED=()
+for mime in "${MIMES[@]}"; do
+  grep -qxF "$mime=$DESKTOP_ID" <<<"$DEFAULTS" && continue
+  xdg-mime default "$DESKTOP_ID" "$mime"
+  CHANGED+=("$mime (was: ${PREV_HANDLER[$mime]:-none})")
+done
+
+if [ ${#CHANGED[@]} -eq 0 ]; then
+  echo "strata: already the default for all ${#MIMES[@]} file-manager MIME types."
 else
-  echo "strata: now the inode/directory handler (was: ${PREV_HANDLER:-none})."
+  echo "strata: now the default for ${#CHANGED[@]} of ${#MIMES[@]} file-manager MIME types:"
+  printf '  %s\n' "${CHANGED[@]}"
 fi
 echo "strata installation complete."

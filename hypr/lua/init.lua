@@ -39,3 +39,6 @@ end
 require("supplement.input")
 require("supplement.bindings")
 require("supplement.scrolloverview")
+-- LAST: the plugin's bindings file unbinds SUPER+TAB and rebinds it, so it has
+-- to run after anything that could claim the key. See quickswitch.lua's header.
+require("supplement.quickswitch")

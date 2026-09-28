@@ -17,7 +17,13 @@ cd ~
 
 # Check if the repository already exists
 if [ -d "$REPO_NAME" ]; then
-  echo "Repository '$REPO_NAME' already exists. Skipping clone"
+  # Pull so a re-run picks up dotfile changes made on another machine. Fast-
+  # forward only: local edits or commits are kept, and stow below still links
+  # whatever is checked out.
+  echo "Repository '$REPO_NAME' already exists. Pulling latest..."
+  git -C "$REPO_NAME" pull --ff-only --quiet ||
+    echo "!! Could not fast-forward ~/$REPO_NAME (local changes or offline); stowing the checked-out version." >&2
+  true
 else
   git clone "$REPO_URL"
 fi
@@ -44,12 +50,6 @@ if [ $? -eq 0 ]; then
   # so every change in its Settings UI would fail into a log warning nobody
   # sees. Same "don't stow it" conclusion as starship above, but for a harder
   # reason: this one breaks the app rather than just losing to it.
-  # snappy-switcher's config dir gets folded into a single stow symlink, so
-  # removing ~/.config/snappy-switcher/config.ini in the cleanup above would
-  # delete the tracked file *through* that symlink, wiping it from the dotfiles
-  # repo. Only clear a real (app-generated) dir here; never touch the symlink.
-  [ -L ~/.config/snappy-switcher ] || rm -rf ~/.config/snappy-switcher
-  stow snappy-switcher
   stow aerc-mail
   # Ensure VSCode's config dir exists as a real dir first so stow symlinks only
   # the individual files (settings.json, keybindings.json). Otherwise stow would
