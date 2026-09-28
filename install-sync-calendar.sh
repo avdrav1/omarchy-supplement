@@ -162,10 +162,13 @@ hancore.shibumi.*)
   echo "Shibumi bar detected; rewriting its group layout..."
   weather_id="$(clone_widget omarchy.weather)"
   update_id="$(clone_widget omarchy.system-update)"
-  python3 - "$SHELL_JSON" "$weather_id" "$update_id" <<'PY'
+  # Display (brightness + scale presets) takes v1's second extra slot; cloned
+  # for the same ConsumedAliases reason as weather (trap 2).
+  display_id="$(clone_widget omarchy.monitor)"
+  python3 - "$SHELL_JSON" "$weather_id" "$update_id" "$display_id" <<'PY'
 import json, os, shutil, sys, time
 
-path, weather_id, update_id = sys.argv[1], sys.argv[2], sys.argv[3]
+path, weather_id, update_id, display_id = sys.argv[1:5]
 with open(path) as fh:
     cfg = json.load(fh)
 before = json.dumps(cfg, sort_keys=True)
@@ -296,11 +299,14 @@ else:
             for region in REGIONS
         }
     sh["order"] = order
-    moving = {CLOCK, *extra_groups}
+    display_group = "G:" + display_id
+    place_in_layout(display_id, "right")
+    moving = {CLOCK, display_group, *extra_groups}
     for region in REGIONS:
         order[region] = strip(order[region], moving)
-    # Only two extra slots on the right, and the clock claims one of them.
-    right = order["right"] + [CLOCK, extra_groups[0]]
+    # Only two extra slots on the right: the clock and Display. Weather stays in
+    # bar.layout but has no v1 slot left.
+    right = order["right"] + [CLOCK, display_group]
     order["right"] = right[: V1_MAX["right"]]
     dropped = right[V1_MAX["right"] :]
     # v1SlotRoles and splits are parallel arrays the validator length-checks
