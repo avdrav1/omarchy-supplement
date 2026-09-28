@@ -119,12 +119,10 @@ run ./install-mise.sh
 run ./install-asdf.sh
 run ./install-nodejs.sh
 run ./install-ruby.sh
-run ./install-postgresql.sh
 run ./install-ghostty.sh
 run ./install-tmux.sh
 run ./install-github-desktop.sh
 run ./install-claude-code.sh
-run ./install-warp-terminal.sh
 run ./install-claude-desktop.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
@@ -212,7 +210,7 @@ cat <<'EOF'
 
 3. Sign in to apps (no automated auth):
    - Claude Code CLI:  run `claude` and authenticate.
-   - Claude Desktop, GitHub Desktop, Warp, Slack:  sign in on first launch.
+   - Claude Desktop, GitHub Desktop, Slack:  sign in on first launch.
    - Vivaldi:  optional Vivaldi Sync; re-add Mail/Calendar accounts per machine.
 
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.

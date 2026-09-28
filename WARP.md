@@ -33,11 +33,11 @@ Each `install-*.sh` script is idempotent-ish and targets a single concern. Commo
 - Language runtimes and database (via `asdf` and system services)
   - `./install-nodejs.sh` – ensure `asdf` is present, install Node.js build deps via `yay`, add the `asdf-nodejs` plugin, and install/set a `latest:20` Node.js.
   - `./install-ruby.sh` – ensure `asdf` is present, install Ruby build deps via `yay`, add the `asdf-ruby` plugin, and install/set the latest Ruby.
-  - `./install-postgresql.sh` – install PostgreSQL via `yay`, initialize the data directory if needed, start and enable the `postgresql` systemd service, and create a database user + database matching `$USER` if missing.
+  - `./install-postgresql.sh` – **not run by `install-all.sh`; run it by hand where needed.** install PostgreSQL via `yay`, initialize the data directory if needed, start and enable the `postgresql` systemd service, and create a database user + database matching `$USER` if missing.
 
 - Applications and terminals
   - `./install-ghostty.sh` – install the Ghostty terminal (see script for exact package details).
-  - `./install-warp-terminal.sh` – add the `warpdotdev` pacman repo if missing, import/sign its key, and install `warp-terminal` via `pacman`.
+  - `./install-warp-terminal.sh` – **not run by `install-all.sh`; run it by hand where needed.** add the `warpdotdev` pacman repo if missing, import/sign its key, and install `warp-terminal` via `pacman`.
   - `./install-tmux.sh`, `./install-github-desktop.sh`, `./install-claude-code.sh`, `./install-kiro-ide.sh`, `./install-kiro-cli.sh` – install various development tools and editors (check each script for specifics; all are Arch/AUR-focused and use `yay`/`pacman`).
   - `./install-vscode.sh` – install the official Microsoft VS Code build `visual-studio-code-bin` from the AUR via `yay` (guarded by `pacman -Qi`). Its tracked config is stowed by `install-dotfiles.sh` (the `vscode` profile) into `~/.config/Code/User/`.
   - `./install-obsidian.sh` – install Obsidian from the Arch `extra` repo via `pacman` (guarded by `pacman -Qi`). No dotfiles profile: Obsidian's settings live per-vault in each vault's `.obsidian/` folder, not in `~/.config`.
@@ -80,7 +80,7 @@ There are no nested modules or libraries; logic lives directly in the shell scri
 
 `install-all.sh` wires together the individual installers and encodes their implicit dependencies:
 
-1. Shell and core CLI tooling: Zsh, `mise`, `asdf`, Node.js, Ruby, PostgreSQL.
+1. Shell and core CLI tooling: Zsh, `mise`, `asdf`, Node.js, Ruby.
 2. Graphical tools and terminals: Ghostty, tmux, GitHub Desktop, Claude integrations (Claude Code, Claude Desktop), Warp terminal, Kiro IDE/CLI.
 3. Configuration layering: install Stow, then dotfiles, then Hyprland overrides.
 4. Final polish: set Zsh as the default shell, apply the Solitude theme, then install the Shibumi Shell bar/plugin suite (which replaces waybar and retires the older Quickshell Rise bar).
