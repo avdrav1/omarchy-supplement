@@ -6,10 +6,6 @@
       "mode": "icon",
       "text": "shibumi"
     },
-    "layoutProtection": {
-      "v1": false,
-      "v2": false
-    },
     "order": {
       "center": [
         "G8"
@@ -61,7 +57,6 @@
         false,
         false
       ],
-      "center": [],
       "left": [
         false,
         false,
@@ -77,7 +72,8 @@
         false,
         false,
         false
-      ]
+      ],
+      "center": []
     },
     "v1SlotRoles": {
       "center": [
@@ -109,34 +105,36 @@
     "v2Layout": {
       "center": [
         "G8",
+        "G:promaa.clock",
+        "G:omaplug",
         "G:omarchy.elsewhen"
       ],
       "left": [
         "G1",
         "G2",
         "G3",
-        "",
+        "G:aweiward.omaqbt",
         "G5",
         "G6",
         "G4",
         "G7",
-        "",
-        ""
+        "G:ayan.nordvpn",
+        "G:io.github.ilyazar.syncthing"
       ],
       "right": [
         "G9",
         "G10",
-        "",
-        "G14",
-        "",
-        "",
         "G11",
+        "G14",
         "G12",
         "G13",
-        "G15",
         "G16",
         "G18",
-        "G17"
+        "G17",
+        "G15",
+        "G:av.system-update",
+        "G:av.weather",
+        "G:av.monitor"
       ]
     },
     "version": 1,
@@ -145,7 +143,8 @@
         "enabled": false
       },
       "G15": {
-        "enabled": false
+        "enabled": false,
+        "enabledV2": true
       },
       "G16": {
         "source": "cpu",
@@ -153,20 +152,16 @@
       },
       "G7": {
         "enabled": false
-      },
-      "G8": {
-        "omarchy.clock": {
-          "clock12h": true
-        },
-        "omarchy.weather": {
-          "unit": "imperial"
-        }
       }
     },
     "workspace": {
       "mode": "10",
       "style": "default",
       "version": 1
+    },
+    "layoutProtection": {
+      "v1": false,
+      "v2": false
     }
   },
   "barWidgets": {
@@ -175,8 +170,49 @@
         "id": "omarchy.keyboard-layout"
       },
       {
+        "id": "promaa.clock"
+      },
+      {
+        "id": "omaplug"
+      },
+      {
         "id": "omarchy.elsewhen",
         "zones": "New York|America/New_York, London|Europe/London, Dubai|Asia/Dubai, Tokyo|Asia/Tokyo, Los Angeles|America/Los_Angeles"
+      }
+    ],
+    "left": [
+      {
+        "id": "aweiward.omaqbt"
+      },
+      {
+        "id": "ayan.nordvpn"
+      },
+      {
+        "id": "io.github.ilyazar.syncthing"
+      }
+    ],
+    "right": [
+      {
+        "id": "av.system-update"
+      },
+      {
+        "id": "av.weather",
+        "unit": "metric"
+      },
+      {
+        "id": "av.monitor"
+      },
+      {
+        "id": "io.weirdware.blueferry"
+      },
+      {
+        "id": "omamail"
+      },
+      {
+        "id": "local.omastat"
+      },
+      {
+        "id": "omarchy.tailscale"
       }
     ]
   }
