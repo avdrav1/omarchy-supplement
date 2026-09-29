@@ -58,6 +58,40 @@ place() {
   fi
 }
 
+# Local fixes for git-managed widgets, kept until upstream merges them:
+# plugin-patches/<id>/*.patch, applied inside the plugin's checkout. They make
+# the checkout dirty, and `omarchy plugin update` refuses to fast-forward a
+# dirty checkout -- so each patch is reverted before the update and re-applied
+# after. Re-applied only if it still applies: once upstream has merged the fix
+# the patch no longer applies forward (it reverse-applies instead) and this is
+# a silent no-op; if upstream reshaped the code some other way, it warns and
+# leaves the widget stock.
+PATCH_DIR="$(dirname "$(readlink -f "$0")")/plugin-patches"
+
+plugin_patches() {
+  local id="$1" action="$2" dir="$PLUGINS_DIR/$1" p
+  [ -d "$PATCH_DIR/$id" ] && [ -d "$dir/.git" ] || return 0
+  for p in "$PATCH_DIR/$id"/*.patch; do
+    [ -f "$p" ] || continue
+    case "$action" in
+    revert)
+      # Only undo it when it is sitting in the working tree as a local change,
+      # not when upstream committed the same fix.
+      if [ -n "$(git -C "$dir" status --porcelain)" ] && git -C "$dir" apply -R --check "$p" 2>/dev/null; then
+        git -C "$dir" apply -R "$p"
+      fi
+      ;;
+    apply)
+      if git -C "$dir" apply --check "$p" 2>/dev/null; then
+        git -C "$dir" apply "$p" && echo "  applied local fix $(basename "$p")"
+      elif ! git -C "$dir" apply -R --check "$p" 2>/dev/null; then
+        echo "  warning: $(basename "$p") no longer applies to $id; left stock" >&2
+      fi
+      ;;
+    esac
+  done
+}
+
 # add-or-update from git, then place. Mirrors install-quickswitch.sh: a git
 # checkout is fast-forwarded with `omarchy plugin update`, anything else is
 # added fresh. `add` runs WITHOUT --enable -- placement is place()'s job.
@@ -69,7 +103,9 @@ git_plugin() {
   fi
   echo "==> $id"
   if [ -d "$PLUGINS_DIR/$id/.git" ]; then
+    plugin_patches "$id" revert
     omarchy plugin update "$id" --yes || echo "  warning: update of $id failed; keeping the installed version" >&2
+    plugin_patches "$id" apply
   elif [ -e "$PLUGINS_DIR/$id" ]; then
     echo "  $id is installed but not from git; leaving it as is."
   else
@@ -78,6 +114,7 @@ git_plugin() {
       FAILED=1
       return
     }
+    plugin_patches "$id" apply
   fi
   place "$id" "$section"
 }
