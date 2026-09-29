@@ -132,8 +132,8 @@
         "G18",
         "G17",
         "G15",
-        "G:av.system-update",
         "G:av.weather",
+        "G:av.system-update",
         "G:av.monitor"
       ]
     },
@@ -193,11 +193,11 @@
     ],
     "right": [
       {
-        "id": "av.system-update"
-      },
-      {
         "id": "av.weather",
         "unit": "metric"
+      },
+      {
+        "id": "av.system-update"
       },
       {
         "id": "av.monitor"
