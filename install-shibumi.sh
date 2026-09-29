@@ -68,6 +68,43 @@ git -C "$SRC_DIR" checkout --quiet --detach "$latest_tag"
 SUITE="$SRC_DIR/scripts/shibumi-suite"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/shibumi"
 
+# ── Preflight: a working omarchy-shell ───────────────────────────────────────
+# Every suite transaction below talks to the running omarchy-shell. If quickshell
+# can't even start, they fail partway and leave an interrupted transaction --
+# which is how a machine got stuck on beta.7: a qt6-base upgrade broke an
+# AUR-built quickshell (`symbol lookup error ... Qt_6_PRIVATE_API`), and the
+# recovery below died mid-uninstall with no shell to talk to. Stop before
+# touching anything instead.
+#
+# LD_BIND_NOW resolves every symbol at load, so a Qt ABI mismatch fails even a
+# bare --version rather than only once the shell reaches the missing symbol.
+if ! qs_err="$(LD_BIND_NOW=1 quickshell --version 2>&1 >/dev/null)"; then
+  echo "ERROR: quickshell cannot start, so Shibumi can't be installed or updated:" >&2
+  printf '  %s\n' "${qs_err:-quickshell not found}" >&2
+  echo "Usually quickshell was built against an older Qt. Run 'omarchy update'" >&2
+  echo "(its migrations swap in the repo quickshell), check the bar is back, then" >&2
+  echo "re-run this script. Nothing was changed." >&2
+  exit 1
+fi
+# In a desktop session the shell must also be running. It may just have given up
+# after crash-looping, so try one restart before failing. (Outside Hyprland there
+# is no shell to reach; the suite reports that itself.)
+shell_running() { pgrep -f '^(/usr/bin/)?quickshell .*-p /usr/share/omarchy/shell' >/dev/null; }
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && ! shell_running; then
+  echo "omarchy-shell is not running; restarting it..."
+  for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
+    [ -d "$d" ] && PATH="$d:$PATH"
+  done
+  omarchy-restart-shell >/dev/null 2>&1 || omarchy restart shell >/dev/null 2>&1 || true
+  for _ in {1..10}; do shell_running && break; sleep 1; done
+  if ! shell_running; then
+    echo "ERROR: omarchy-shell is not running and would not start." >&2
+    echo "Check 'journalctl --user -b | grep omarchy-shell', fix it, then re-run." >&2
+    echo "Nothing was changed." >&2
+    exit 1
+  fi
+fi
+
 # ── Recover an install too old to update ─────────────────────────────────────
 # Each suite release only updates from a fixed list of predecessor identities
 # (currently beta.11 and later). An older install -- e.g. a machine last set up
