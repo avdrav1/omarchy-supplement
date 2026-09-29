@@ -125,10 +125,11 @@ fi
 # A clone is a frozen copy: once Omarchy ships a new version of the widget the
 # clone keeps running the old code, and if the shell's widget API moved under it
 # the widget just errors out and silently vanishes from the bar. Unlike the
-# omarchy.menu clone in install-omarchy-menu-websearch.sh these carry no local
-# patch -- they are byte-identical copies -- so there is nothing to re-apply and
-# we can simply re-clone whenever the Omarchy package version has moved. The
-# stamp lives outside the plugin dir so it is never mistaken for plugin content.
+# omarchy.menu clone in install-omarchy-menu-websearch.sh these are byte-identical
+# copies (the one exception, the Display clone, is patched by an idempotent
+# re-apply after every clone -- see patch_display_null_bar), so we can simply
+# re-clone whenever the Omarchy package version has moved. The stamp lives
+# outside the plugin dir so it is never mistaken for plugin content.
 STAMP_DIR="$HOME/.local/state/omarchy-supplement"
 
 omarchy_version() {
@@ -157,6 +158,39 @@ clone_widget() {
   printf '%s\n' "$new_id"
 }
 
+# The stock Display panel reads root.bar.foreground / root.bar.fontFamily
+# directly, but a Shibumi-hosted widget is created before its `bar` is assigned,
+# so every bar reload logs ~50 "Cannot read property ... of null" TypeErrors
+# (harmless -- the bindings re-evaluate once `bar` lands -- but they bury real
+# errors). Route those reads through null-safe properties that fall back to the
+# theme. Re-applied after every clone since a re-clone restores stock code;
+# idempotent, and if a future Omarchy reshapes the file it warns and leaves the
+# clone stock rather than half-patching it. Takes effect on the next shell
+# restart: Shibumi keeps loaded widget components across plugin rescans.
+patch_display_null_bar() {
+  local panel="$HOME/.config/omarchy/plugins/$1/Panel.qml"
+  [ -f "$panel" ] || return 0
+  python3 - "$panel" <<'PY' || echo "  warning: could not patch $1 for null bar; left stock" >&2
+import re, sys
+path = sys.argv[1]
+s = open(path).read()
+if "root.barFg" in s:
+    sys.exit(0)
+anchor = re.search(r"^  id: root\n", s, re.M)
+if not anchor or "root.bar.foreground" not in s:
+    sys.exit(1)
+props = (
+    "  // Patched by omarchy-supplement (install-sync-calendar.sh): `bar` is null\n"
+    "  // until the host bar assigns it, so read through these null-safe copies.\n"
+    "  readonly property color barFg: bar ? bar.foreground : Color.foreground\n"
+    "  readonly property string barFont: bar ? bar.fontFamily : Style.fontFamily\n"
+)
+s = s[:anchor.end()] + props + s[anchor.end():]
+s = s.replace("root.bar.foreground", "root.barFg").replace("root.bar.fontFamily", "root.barFont")
+open(path, "w").write(s)
+PY
+}
+
 # ── Post-install: retire the old clock and center the new one ────────────────
 bar_id="$(python3 -c "
 import json
@@ -174,6 +208,7 @@ hancore.shibumi.*)
   # Display (brightness + scale presets) takes v1's second extra slot; cloned
   # for the same ConsumedAliases reason as weather (trap 2).
   display_id="$(clone_widget omarchy.monitor)"
+  patch_display_null_bar "$display_id"
   python3 - "$SHELL_JSON" "$weather_id" "$update_id" "$display_id" <<'PY'
 import json, os, shutil, sys, time
 
