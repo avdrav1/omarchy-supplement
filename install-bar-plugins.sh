@@ -92,6 +92,37 @@ plugin_patches() {
   done
 }
 
+# Widget settings from the dotfiles `omarchy-plugins` stow package: one JSON
+# object per plugin id, written onto the widget's bar.layout entry with
+# `omarchy bar set` on EVERY run -- the dotfiles copy is the source of truth,
+# so a change made in a widget's own settings UI lasts only until the next run
+# unless it is copied back into ~/dotfiles. Only keys whose value differs are
+# set: each call is a separate shell.json write and config reload. Needs the
+# widget on the bar (setBarWidget edits its layout entry) and a running shell.
+# The IPC timeout is raised from omarchy-shell's 2s: on the reference machine
+# the reload after one write takes ~3s, and the NEXT call's reply waits behind
+# it -- with 2s that call reports "not responding" although its write lands.
+SETTINGS_DIR="$HOME/.config/omarchy/plugin-settings"
+apply_settings() {
+  local id="$1" file="$SETTINGS_DIR/$1.json" key want have
+  [ -f "$file" ] || return 0
+  if ! in_bar_layout "$id"; then
+    echo "  $id is not on the bar; its settings from dotfiles were not applied." >&2
+    return 0
+  fi
+  while IFS= read -r key; do
+    want=$(jq -c --arg k "$key" '.[$k]' "$file")
+    have=$(jq -c --arg id "$id" --arg k "$key" \
+      '[.bar.layout // {} | .[] | .[]? | objects | select(.id == $id)][0][$k]' "$SHELL_JSON")
+    [ "$want" = "$have" ] && continue
+    OMARCHY_SHELL_IPC_TIMEOUT="${OMARCHY_SHELL_IPC_TIMEOUT:-15s}" \
+      omarchy bar set "$id" "$key" "$want" --json >/dev/null || {
+      echo "  warning: could not set $key on $id" >&2
+      FAILED=1
+    }
+  done < <(jq -r 'keys[]' "$file")
+}
+
 # add-or-update from git, then place. Mirrors install-quickswitch.sh: a git
 # checkout is fast-forwarded with `omarchy plugin update`, anything else is
 # added fresh. `add` runs WITHOUT --enable -- placement is place()'s job.
@@ -117,6 +148,7 @@ git_plugin() {
     plugin_patches "$id" apply
   fi
   place "$id" "$section"
+  apply_settings "$id"
 }
 
 # ── Backends ─────────────────────────────────────────────────────────────────
@@ -153,6 +185,12 @@ git_plugin omaplug https://github.com/fross100/omaplug center
 git_plugin omamail https://github.com/huacnlee/omamail.git right
 git_plugin io.github.jeremylanger.omaspotify https://github.com/jeremylanger/omaspotify.git right
 git_plugin io.github.arthurr0.claude-usage https://github.com/arthurr0/omarchy-claude-usage.git right
+# News & Scores ticker. Python stdlib only; nothing to install or sign in to.
+git_plugin av.news https://github.com/avdrav1/omarchy-news.git left
+# OmaScale: Tailscale panel (exit nodes, peers, ping). Drives the tailscale CLI
+# unprivileged, so it needs install-tailscale.sh's daemon, sign-in and
+# --operator=$USER; it has no auth of its own.
+git_plugin cjkaufman.omascale https://github.com/CJKaufman/omarchy-omascale right
 
 # omaqbt's daemon unit is written by its own helper (the panel's "Start daemon"
 # button runs exactly this). It also enables qBittorrent's Web UI on localhost,

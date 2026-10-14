@@ -30,7 +30,14 @@ if ! systemctl is-enabled --quiet tailscaled.service \
   sudo systemctl enable --now tailscaled.service
 fi
 
+# Operator = the desktop user may change prefs without sudo. The OmaScale bar
+# widget (install-bar-plugins.sh) runs `tailscale set --exit-node ...` and
+# `tailscale up/down` unprivileged; without this tailscaled refuses them and
+# the panel's exit-node and connect controls silently do nothing.
 if tailscale status &>/dev/null; then
+  if [ "$(tailscale debug prefs 2>/dev/null | jq -r '.OperatorUser // ""')" != "$USER" ]; then
+    sudo tailscale set --operator="$USER"
+  fi
   echo "Tailscale already logged in:"
   # `| head -5` closes the pipe early, so `tailscale status` takes SIGPIPE and,
   # under `set -o pipefail`, the pipeline exits 141. As the script's last
@@ -39,7 +46,7 @@ if tailscale status &>/dev/null; then
 else
   echo ""
   echo "Tailscale installed. Complete authentication with:"
-  echo "  sudo tailscale up"
+  echo "  sudo tailscale up --operator=$USER"
   echo ""
   echo "Follow the printed URL in a browser and sign in to the same account"
   echo "used on the other devices (av-framework, av-alienware)."

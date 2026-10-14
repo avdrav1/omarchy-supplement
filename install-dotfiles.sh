@@ -31,7 +31,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf
+  rm -rf ~/.zshrc ~/.config/nvim ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf ~/.config/omarchy/plugin-settings/av.news.json ~/.config/omarchy/plugin-settings/cjkaufman.omascale.json
 
   cd "$REPO_NAME"
   stow zshrc
@@ -67,6 +67,13 @@ if [ $? -eq 0 ]; then
   # the single file is linked.
   mkdir -p ~/.config/fcitx5/conf
   stow fcitx5
+  # Bar-widget settings (one JSON object per plugin id), applied to shell.json
+  # by install-bar-plugins.sh on every run -- shell.json itself is Omarchy's
+  # and per-machine, so it cannot be stowed. Real dirs first, as above: with
+  # ~/.config/omarchy absent stow would fold the WHOLE dir into the repo,
+  # shell.json and every plugin checkout with it.
+  mkdir -p ~/.config/omarchy/plugin-settings
+  stow omarchy-plugins
   # The dotfiles repo now contains only the packages stowed above. The X11-era
   # and pre-Omarchy packages (i3, picom, polybar, rofi, wofi, waybar,
   # xresources, screenlayout, alacritty, kitty, elephant, backgrounds,
