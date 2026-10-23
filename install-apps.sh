@@ -104,6 +104,28 @@ script_app gutenberg https://gutenbergapp.com/install.sh   # news reader
 script_app brick https://brick.cronkite.cc/install.sh      # spreadsheet
 script_app slate https://slate.cronkite.cc/install.sh
 script_app frame https://frame.cronkite.cc/install.sh
+script_app etch https://etch.cronkite.cc/install.sh        # image editor
+
+# Gutenberg's installer drops only the binary, so give it a launcher entry.
+# StartupWMClass matches the application_id it sets on its window.
+if [ -x "$HOME/.local/bin/gutenberg" ] && [ ! -f "$APPS_DIR/gutenberg.desktop" ]; then
+  install -Dm644 "$SCRIPT_DIR/apps/icons/gutenberg.svg" \
+    "$HOME/.local/share/icons/hicolor/scalable/apps/gutenberg.svg"
+  cat >"$APPS_DIR/gutenberg.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Gutenberg
+GenericName=News Reader
+Comment=Read feeds and articles
+Exec=$HOME/.local/bin/gutenberg
+Icon=gutenberg
+Terminal=false
+StartupWMClass=gutenberg
+Categories=Network;News;
+Keywords=rss;atom;feed;news;reader;
+EOF
+  echo "Added the Gutenberg launcher entry."
+fi
 
 # Kimi Code CLI: a wrapper that runs the npm package through mise.
 if [ ! -x "$HOME/.local/bin/kimi" ]; then
