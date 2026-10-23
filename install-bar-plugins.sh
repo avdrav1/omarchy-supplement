@@ -3,10 +3,10 @@
 set -euo pipefail
 
 # Third-party omarchy-shell bar widgets the reference machine (alienware) runs
-# that no other installer here puts in place, plus the stock optional widgets it
-# has turned on. The Shibumi suite, the Calendar Sync clock (+ av.weather /
-# av.system-update clones), BlueFerry, QuickSwitch and the patched menu each have
-# their own installer; this one covers everything else on the bar.
+# that no other installer here puts in place. The Shibumi suite, the Calendar
+# Sync clock (+ av.weather / av.system-update clones), BlueFerry, QuickSwitch and
+# the patched menu each have their own installer, and the non-bar plugins are
+# install-shell-plugins.sh's; this one covers everything else on the bar.
 #
 # Placement: a widget is placed (`omarchy plugin enable <id> <section>`) ONLY
 # when it is not in shell.json's bar.layout yet. `enable` with a section *moves*
@@ -191,6 +191,17 @@ git_plugin av.news https://github.com/avdrav1/omarchy-news.git left
 # unprivileged, so it needs install-tailscale.sh's daemon, sign-in and
 # --operator=$USER; it has no auth of its own.
 git_plugin cjkaufman.omascale https://github.com/CJKaufman/omarchy-omascale right
+# Notification history (30 days, with images). Keep it at the far right: its
+# panel is pinned to the right screen edge. Needs only jq and inotifywait.
+git_plugin jankeesvw.notification-center https://github.com/jankeesvw/omarchy-notification-center.git right
+# YouTube Music player (yt-dlp + mpv, both Omarchy base). Settings are seeded
+# below, not stowed: its helper replaces settings.json with mv on every save.
+if ! skipped local.ytmusic-plus; then
+  YTM_SETTINGS="$HOME/.local/share/omarchy-ytmusic-plus/settings.json"
+  [ -e "$YTM_SETTINGS" ] ||
+    install -Dm644 "$(dirname "$(readlink -f "$0")")/plugin-config/ytmusic-plus.json" "$YTM_SETTINGS"
+fi
+git_plugin local.ytmusic-plus https://github.com/Pro-Termux-arch/omarchy-ytmusic-plus.git left
 
 # omaqbt's daemon unit is written by its own helper (the panel's "Start daemon"
 # button runs exactly this). It also enables qBittorrent's Web UI on localhost,
@@ -247,24 +258,11 @@ if ! skipped local.omastat; then
 fi
 
 # ── Stock optional widgets ───────────────────────────────────────────────────
-# Shipped with Omarchy, just switched on. omarchy.tailscale folds into Shibumi's
-# fixed network group (G11) rather than taking a slot. install-tailscale.sh
-# provides the daemon.
-skipped omarchy.tailscale || place omarchy.tailscale right
-
-if ! skipped omarchy.elsewhen; then
-  place omarchy.elsewhen center
-  # The world-clock zones the reference machine shows. Written only when the
-  # entry has none yet, so zones edited on a machine are not reset on re-run.
-  ZONES="New York|America/New_York, London|Europe/London, Dubai|Asia/Dubai, Tokyo|Asia/Tokyo, Los Angeles|America/Los_Angeles"
-  if jq -e '[.bar.layout[]?[]? | select(.id == "omarchy.elsewhen" and (.zones // "") == "")] | length > 0' \
-    "$SHELL_JSON" >/dev/null 2>&1; then
-    tmp="$(mktemp "$SHELL_JSON.XXXXXX")"
-    jq --arg z "$ZONES" '.bar.layout |= map_values(map(if .id == "omarchy.elsewhen" then .zones = $z else . end))' \
-      "$SHELL_JSON" >"$tmp" && chmod --reference="$SHELL_JSON" "$tmp" && mv "$tmp" "$SHELL_JSON"
-    echo "  Set omarchy.elsewhen zones."
-  fi
-fi
+# None any more. omarchy.tailscale (folded into Shibumi's G11) gave way to the
+# OmaScale widget above, and omarchy.elsewhen (world clock) came off the
+# reference machine's bar, so neither is placed. A machine that already shows
+# them keeps them -- this installer never removes a widget; drop it from the
+# bar by hand (`omarchy plugin disable <id>`) to match.
 
 omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true
 

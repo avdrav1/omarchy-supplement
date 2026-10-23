@@ -174,6 +174,11 @@ run ./install-bar-plugins.sh
 # touches the bar layout -- but it still wants to land before the final shell
 # restart below. Its Hyprland binds come from install-hyprland-overrides.sh.
 run ./install-quickswitch.sh
+# Overlay/service plugins (OmaDock, Spotlight, Altscape): same reasons as
+# QuickSwitch -- shell.json `plugins` only, no bar layout. After
+# install-hyprland-overrides.sh, whose hypr/lua/apps.lua holds their binds, and
+# Altscape's helper appends its ALT+TAB block after that tree.
+run ./install-shell-plugins.sh
 # LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
 # Shibumi's installer rewrites, so it has to run after that settles -- and its
 # shell restart should be the final one of the provision.
@@ -265,7 +270,11 @@ cat <<'EOF'
 10. Bar widgets (install-bar-plugins.sh), each signed in from its own panel:
    NordVPN (log out/in first -- the nordvpn group is new), Omamail (mail
    account), Omaspotify (Spotify Premium), Syncthing (pair devices), Claude
-   usage (needs `claude` logged in). Apps: 1Password, Discord, Codex.
+   usage (needs `claude` logged in). Apps: 1Password, Vesktop (Discord),
+   Codex, Perplexity, Steam, Zed.
+
+11. Omarchy iCloud Photos:  open it from the launcher and sign in with the
+   Apple ID (2FA prompt); the sync timer picks up from there.
 
 ============================================================
 EOF

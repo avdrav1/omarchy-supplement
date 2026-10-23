@@ -21,6 +21,10 @@ PACKAGES=(
   discord              # extra
   openai-codex-desktop # omarchy repo
   clock-tui-bin        # AUR: `tclock`
+  vesktop-bin          # AUR: Discord client (SUPER+D and autostart in hypr/lua/apps.lua)
+  perplexity           # omarchy repo
+  godot                # extra
+  android-tools        # extra: adb/fastboot
 )
 
 # Filter to what is missing first: `yay --needed` still hands repo packages to
@@ -35,6 +39,16 @@ if ((${#MISSING[@]})); then
   yay -S --noconfirm --needed "${MISSING[@]}"
 else
   echo "Apps already installed: ${PACKAGES[*]}"
+fi
+
+# Steam through Omarchy's own pieces rather than a bare package: the lib32 GPU
+# drivers have to go in first, or pacman resolves Steam's virtual
+# lib32-vulkan-driver to lib32-nvidia-utils on every machine. Not
+# omarchy-install-gaming-steam itself, which launches Steam when it finishes.
+if ! pacman -Qq steam &>/dev/null; then
+  echo "Installing Steam"
+  omarchy-install-gaming-gpu-lib32
+  omarchy-pkg-add steam
 fi
 
 # ── Web apps ─────────────────────────────────────────────────────────────────
@@ -63,5 +77,51 @@ add_webapp() {
 add_webapp amazon "https://amazon.com" "$ICONS/amazon.png"
 add_webapp netflix "https://netflix.com" "$ICONS/netflix.png"
 add_webapp nugs "https://nugs.net" ""
+add_webapp "Bisco Radio" "https://biscomusic.com" "$ICONS/bisco-radio.png"
+
+# ── Apps from upstream install scripts ───────────────────────────────────────
+# No package for these; each vendor's script drops a binary (plus a .desktop
+# entry for the GUI ones) into ~/.local/bin. None of them prompt. Skipped when
+# the command already exists -- they update themselves, or are re-run by hand.
+script_app() {
+  local cmd="$1" url="$2"
+  shift 2
+  if command -v "$cmd" >/dev/null 2>&1 || [ -x "$HOME/.local/bin/$cmd" ]; then
+    echo "'$cmd' already installed."
+    return
+  fi
+  echo "Installing '$cmd' ($url)"
+  curl -fsSL "$url" | sh -s -- "$@" ||
+    echo "  warning: could not install '$cmd'" >&2
+}
+
+script_app zed https://zed.dev/install.sh
+script_app herdr https://herdr.dev/install.sh               # terminal multiplexer
+script_app omp https://omp.sh/install                       # oh-my-pi coding agent
+script_app tidemail https://raw.githubusercontent.com/allisonhere/tidemail/main/install.sh
+script_app llmfit https://llmfit.axjns.dev/install.sh --local # --local: no sudo prompt
+script_app gutenberg https://gutenbergapp.com/install.sh   # news reader
+script_app brick https://brick.cronkite.cc/install.sh      # spreadsheet
+script_app slate https://slate.cronkite.cc/install.sh
+script_app frame https://frame.cronkite.cc/install.sh
+
+# Kimi Code CLI: a wrapper that runs the npm package through mise.
+if [ ! -x "$HOME/.local/bin/kimi" ]; then
+  install -Dm755 "$SCRIPT_DIR/bin/kimi" "$HOME/.local/bin/kimi"
+  echo "Installed the kimi wrapper."
+fi
+
+# Omarchy iCloud Photos (recent iCloud photos in a launcher, plus a sync timer).
+# The checkout sits under ~/Documents, as on the reference machine, so a machine
+# that Syncthing already gave it to just re-links it. Its install.sh symlinks
+# into the checkout and is re-runnable. The Apple sign-in is per machine.
+ICLOUD_SRC="$HOME/Documents/github.com/jankeesvw/omarchy-icloud-photos"
+if [ ! -d "$ICLOUD_SRC" ]; then
+  git clone --quiet https://github.com/jankeesvw/omarchy-icloud-photos.git "$ICLOUD_SRC" ||
+    echo "  warning: could not clone omarchy-icloud-photos" >&2
+fi
+if [ -x "$ICLOUD_SRC/install.sh" ] && [ ! -e "$HOME/.local/bin/omarchy-icloud-photos" ]; then
+  "$ICLOUD_SRC/install.sh" || echo "  warning: omarchy-icloud-photos install failed" >&2
+fi
 
 echo "Apps installation complete."

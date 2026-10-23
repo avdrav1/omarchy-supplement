@@ -1,0 +1,33 @@
+{
+  "volume": 70,
+  "silence": "off",
+  "normalize": "off",
+  "lyricsOffset": 0,
+  "mixAuto": "on",
+  "searchLimit": 12,
+  "dlQuality": "best",
+  "loop": "one",
+  "eqPreset": "flat",
+  "eqGains": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "customFont": "",
+  "update_channel": "beta",
+  "barmode": "full",
+  "seekstyle": "default",
+  "btnstyle": "classic",
+  "buffer": "balanced",
+  "viz": "on",
+  "fullscreen": "off",
+  "barexpand": "on",
+  "dockpos": "top"
+}

@@ -31,7 +31,7 @@ fi
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
   echo "removing old configs"
-  rm -rf ~/.zshrc ~/.config/nvim ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf ~/.config/omarchy/plugin-settings/av.news.json ~/.config/omarchy/plugin-settings/cjkaufman.omascale.json
+  rm -rf ~/.zshrc ~/.config/nvim ~/.local/share/nvim/ ~/.cache/nvim/ ~/.config/ghostty/config ~/.local/bin/audio-output-cycle ~/.config/aerc ~/.config/isyncrc ~/.config/msmtp ~/.msmtprc ~/.config/Code/User/settings.json ~/.config/Code/User/keybindings.json ~/.config/fcitx5/conf/quickphrase.conf ~/.config/omarchy/plugin-settings/av.news.json ~/.config/omarchy/plugin-settings/cjkaufman.omascale.json ~/.config/omarchy/plugin-settings/io.github.arthurr0.claude-usage.json ~/.config/omarchy/plugin-settings/io.github.jeremylanger.omaspotify.json ~/.config/omarchy/plugin-settings/omamail.json ~/.config/vesktop/settings/quickCss.css ~/.config/vesktop/settings/settings.json ~/.config/omarchy/themed/vencord.theme.css.tpl ~/.config/omarchy/hooks/theme-set.d/20-vesktop-theme ~/.config/herdr/config.toml
 
   cd "$REPO_NAME"
   stow zshrc
@@ -74,6 +74,17 @@ if [ $? -eq 0 ]; then
   # shell.json and every plugin checkout with it.
   mkdir -p ~/.config/omarchy/plugin-settings
   stow omarchy-plugins
+  # Vesktop: QuickCSS and the Vencord settings (enabled plugins, theme), plus the
+  # Omarchy theme template and theme-set hook that copy the current theme's
+  # colours into ~/.config/vesktop/themes on every theme change. Real dirs
+  # first, as above: Vesktop keeps its Discord profile in ~/.config/vesktop, and
+  # ~/.config/omarchy/hooks holds hooks Omarchy itself installs.
+  mkdir -p ~/.config/vesktop/settings ~/.config/omarchy/themed ~/.config/omarchy/hooks/theme-set.d
+  stow vesktop
+  # herdr (terminal multiplexer, tmux-style keys). Only config.toml: herdr
+  # writes its plugin lock and release notes next to it.
+  mkdir -p ~/.config/herdr
+  stow herdr
   # The dotfiles repo now contains only the packages stowed above. The X11-era
   # and pre-Omarchy packages (i3, picom, polybar, rofi, wofi, waybar,
   # xresources, screenlayout, alacritty, kitty, elephant, backgrounds,

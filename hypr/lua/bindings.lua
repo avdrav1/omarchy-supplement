@@ -29,8 +29,14 @@ hl.unbind("SUPER + B")
 o.bind("SUPER + B", "Browser", browser)
 
 -- Web apps. SUPER+G is Omarchy's "Toggle window grouping" by default.
+-- Discord is Vesktop where it is installed (focuses the running window, or
+-- raises it from the tray), and the web app everywhere else.
 hl.unbind("SUPER + D")
-o.bind("SUPER + D", "Discord", { webapp = "https://discord.com/channels/@me" })
+if o.cmd_present("vesktop") then
+  o.bind("SUPER + D", "Discord", o.launch_sole("^vesktop$", "vesktop"))
+else
+  o.bind("SUPER + D", "Discord", { webapp = "https://discord.com/channels/@me" })
+end
 
 hl.unbind("SUPER + G")
 o.bind("SUPER + G", "Notion", { webapp = "https://www.notion.so/" })

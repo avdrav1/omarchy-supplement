@@ -6,6 +6,10 @@
       "mode": "icon",
       "text": "shibumi"
     },
+    "layoutProtection": {
+      "v1": false,
+      "v2": false
+    },
     "order": {
       "center": [
         "G8"
@@ -38,7 +42,7 @@
       "favorites": []
     },
     "presentation": {
-      "accent": "color01",
+      "accent": "color03",
       "border": true,
       "frost": false,
       "panelBorder": true,
@@ -57,6 +61,7 @@
         false,
         false
       ],
+      "center": [],
       "left": [
         false,
         false,
@@ -72,8 +77,7 @@
         false,
         false,
         false
-      ],
-      "center": []
+      ]
     },
     "v1SlotRoles": {
       "center": [
@@ -99,15 +103,15 @@
       ]
     },
     "v2Boundaries": [
-      false,
+      true,
       false
     ],
     "v2Layout": {
       "center": [
-        "G8",
+        "G:av.weather",
         "G:promaa.clock",
-        "G:omaplug",
-        "G:omarchy.elsewhen"
+        "G:av.system-update",
+        "G:omaplug"
       ],
       "left": [
         "G1",
@@ -119,10 +123,13 @@
         "G4",
         "G7",
         "G:ayan.nordvpn",
-        "G:io.github.ilyazar.syncthing"
+        "G:io.github.ilyazar.syncthing",
+        "G:io.github.arthurr0.claude-usage",
+        "G9",
+        "G:local.ytmusic-plus"
       ],
       "right": [
-        "G9",
+        "G:io.github.jeremylanger.omaspotify",
         "G10",
         "G11",
         "G14",
@@ -132,52 +139,88 @@
         "G18",
         "G17",
         "G15",
-        "G:av.weather",
-        "G:av.system-update",
-        "G:av.monitor"
+        "G8",
+        "G:io.weirdware.blueferry",
+        "G:local.omastat"
       ]
     },
     "version": 1,
     "widgets": {
+      "G1": {
+        "separator": false
+      },
+      "G10": {
+        "separator": true
+      },
       "G14": {
         "enabled": false
       },
       "G15": {
-        "enabled": false,
-        "enabledV2": true
+        "enabled": true
       },
       "G16": {
         "source": "cpu",
-        "unit": "metric"
+        "unit": "metric",
+        "separator": true
       },
       "G7": {
         "enabled": false
+      },
+      "G8": {
+        "enabledV1": false,
+        "enabledV2": false,
+        "omarchy.clock": {
+          "clock12h": true
+        },
+        "omarchy.weather": {
+          "unit": "metric"
+        }
+      },
+      "G:av.news": {
+        "separator": true
+      },
+      "G:av.system-update": {
+        "separator": true
+      },
+      "G:av.weather": {
+        "separator": false
+      },
+      "G:io.github.arthurr0.claude-usage": {
+        "separator": true
+      },
+      "G:promaa.clock": {
+        "separator": true
+      },
+      "G18": {
+        "separator": false
       }
     },
     "workspace": {
       "mode": "10",
-      "style": "default",
+      "style": "numbers",
       "version": 1
-    },
-    "layoutProtection": {
-      "v1": false,
-      "v2": false
     }
   },
   "barWidgets": {
     "center": [
       {
-        "id": "omarchy.keyboard-layout"
+        "id": "av.weather",
+        "unit": "imperial"
       },
       {
-        "id": "promaa.clock"
+        "clockHourCycle": 12,
+        "compact": false,
+        "displayMode": "full",
+        "format": "ddd d MMM h:mm AP",
+        "id": "promaa.clock",
+        "mediaStyle": "default",
+        "separator": true
+      },
+      {
+        "id": "av.system-update"
       },
       {
         "id": "omaplug"
-      },
-      {
-        "id": "omarchy.elsewhen",
-        "zones": "New York|America/New_York, London|Europe/London, Dubai|Asia/Dubai, Tokyo|Asia/Tokyo, Los Angeles|America/Los_Angeles"
       }
     ],
     "left": [
@@ -189,30 +232,101 @@
       },
       {
         "id": "io.github.ilyazar.syncthing"
+      },
+      {
+        "criticalPercent": 100,
+        "id": "io.github.arthurr0.claude-usage",
+        "warnPercent": 35
+      },
+      {
+        "alerts": "favorites",
+        "displayMode": "full",
+        "hourCycle": 12,
+        "id": "av.news",
+        "leagues": "basketball/nba,baseball/mlb,football/nfl",
+        "showScores": true,
+        "tab1": "news",
+        "tab1Url": "",
+        "tab2": "business",
+        "tab2Url": "",
+        "tab3": "technology",
+        "tab3Url": "",
+        "tab4": "science",
+        "tab4Url": "",
+        "tab5": "omarchy",
+        "tab5Url": "",
+        "teams": "San Francisco Giants,Athletics,Philadelphia Phillies,Pittsburgh Steelers,San Francisco 49ers,Golden State Warriors,New York Knicks",
+        "tickerSources": "tab1",
+        "tickerSpeed": 40,
+        "tickerTeams": "favorites",
+        "tickerWidth": 160,
+        "tickerWidthPercent": 0
+      },
+      {
+        "id": "local.ytmusic-plus"
+      },
+      {
+        "id": "io.github.qempexe.altscape"
       }
     ],
     "right": [
       {
-        "id": "av.weather",
-        "unit": "metric"
-      },
-      {
-        "id": "av.system-update"
-      },
-      {
-        "id": "av.monitor"
+        "audioQuality": "320 kbps",
+        "deviceName": "OmaSpotify",
+        "id": "io.github.jeremylanger.omaspotify",
+        "idleShutdownMinutes": 15,
+        "libraryFilter": "all",
+        "librarySort": "library",
+        "libraryView": "list",
+        "maxBarTextWidth": "240",
+        "normalizeVolume": "On",
+        "scrollBarText": "Off",
+        "scrollSpeed": "1",
+        "shortcutHints": "On",
+        "shortcutPlayer": "Omarchy Music app",
+        "showArtistName": "Off",
+        "showMiniPlayer": "On",
+        "showPausedTrack": "On",
+        "showTrackTitle": "On",
+        "volumeLevel": "Normal"
       },
       {
         "id": "io.weirdware.blueferry"
       },
       {
-        "id": "omamail"
+        "id": "omamail",
+        "refreshIntervalSec": 120,
+        "maxMessages": 25,
+        "heavyMessageRendering": "Show plain text first",
+        "contentDirection": "Auto",
+        "appearance": "System",
+        "defaultQuery": "in:inbox",
+        "notifyNewMail": "On",
+        "oauthPort": 9481,
+        "undoSendSeconds": 10,
+        "unifiedCalendarView": false,
+        "calendarRemindersEnabled": true,
+        "calendarSnoozeMinutes": 5,
+        "showBarIcon": true,
+        "unifiedMailboxes": false,
+        "suggestEvents": false,
+        "aiAgent": "System default",
+        "aiModel": ""
       },
       {
-        "id": "local.omastat"
+        "compact": false,
+        "displayMode": "full",
+        "iconOnly": true,
+        "id": "local.omastat",
+        "mediaStyle": "default"
       },
       {
-        "id": "omarchy.tailscale"
+        "id": "jankeesvw.notification-center"
+      },
+      {
+        "id": "cjkaufman.omascale",
+        "refreshIntervalSec": 10,
+        "showIpOnBar": false
       }
     ]
   }
