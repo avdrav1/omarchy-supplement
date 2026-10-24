@@ -79,24 +79,27 @@ fi
 
 # Spotlight ships in a multi-plugin collection repo whose install.sh copies one
 # subdirectory into place (not a git checkout, so no `omarchy plugin update`).
-# Installed only when absent: re-run `install.sh --update mihai.spotlight` from
-# a clone of the collection to update it. Its own --enable would place it in a
-# bar section, which is wrong for an overlay, so it is enabled separately.
+# When it is already installed, pass --update so each run re-copies the current
+# upstream version -- without it install.sh just skips, and the copy freezes at
+# whatever version the machine first got. The plugin keeps no state in its own
+# directory, so replacing it wholesale loses nothing. Its own --enable would
+# place it in a bar section, which is wrong for an overlay, so it is enabled
+# separately.
 if ! skipped mihai.spotlight; then
   echo "==> mihai.spotlight"
-  if [ -e "$PLUGINS_DIR/mihai.spotlight" ]; then
-    echo "  already installed."
+  update_flag=()
+  [ -e "$PLUGINS_DIR/mihai.spotlight" ] && update_flag=(--update)
+  tmp="$(mktemp -d)"
+  if git clone --quiet --depth 1 https://github.com/nightdevil00/Plugins.git "$tmp/Plugins" &&
+    "$tmp/Plugins/install.sh" "${update_flag[@]}" mihai.spotlight; then
+    :
+  elif ((${#update_flag[@]})); then
+    echo "  warning: update of mihai.spotlight failed; keeping the installed version" >&2
   else
-    tmp="$(mktemp -d)"
-    if git clone --quiet --depth 1 https://github.com/nightdevil00/Plugins.git "$tmp/Plugins" &&
-      "$tmp/Plugins/install.sh" mihai.spotlight; then
-      :
-    else
-      echo "  warning: could not install mihai.spotlight" >&2
-      FAILED=1
-    fi
-    rm -rf "$tmp"
+    echo "  warning: could not install mihai.spotlight" >&2
+    FAILED=1
   fi
+  rm -rf "$tmp"
   [ -e "$PLUGINS_DIR/mihai.spotlight" ] && { omarchy plugin enable mihai.spotlight >/dev/null 2>&1 || true; }
 fi
 
