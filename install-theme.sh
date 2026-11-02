@@ -2,29 +2,32 @@
 
 set -euo pipefail
 
-# Apply the Solitude Omarchy theme -- what the reference machine (alienware)
-# runs. Dos-Moos, the theme this script used to set, is by the same author and
-# stays installed wherever it already is; it is just no longer the active one.
-# - Solitude theme: https://github.com/HANCORE-linux/omarchy-solitude-theme
+# Apply the Rebirth Omarchy theme -- what the reference machine (alienware)
+# runs. Solitude and Dos-Moos, the themes this script used to set, stay
+# installed wherever they already are; they are just no longer the active one.
+#
+# Rebirth was generated locally with Aether and has no upstream repo, so its
+# source is tracked in themes/rebirth. It is copied rather than symlinked, and
+# only when absent: Aether rewrites a theme directory in place, which through a
+# symlink would land in this repo, and a re-run must not discard that work. To
+# carry a change back, copy the directory into themes/rebirth and commit.
 #
 # The bar is no longer installed here. This script used to also install the
 # Quickshell Rise bar; that has been superseded by Shibumi Shell, which
 # install-shibumi.sh installs (and which retires the leftover Rise footprint).
 
-# ── Solitude Omarchy theme ───────────────────────────────────────────────────
-THEME_URL="https://github.com/HANCORE-linux/omarchy-solitude-theme"
-THEME_NAME="solitude"
+# ── Rebirth Omarchy theme ────────────────────────────────────────────────────
+THEME_NAME="rebirth"
+THEME_SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/themes/$THEME_NAME"
 THEME_DIR="$HOME/.config/omarchy/themes/$THEME_NAME"
 
-echo "Installing Solitude Omarchy theme..."
+echo "Installing Rebirth Omarchy theme..."
 
 if [ ! -d "$THEME_DIR" ]; then
-  # 'omarchy theme install' clones into ~/.config/omarchy/themes/<slug>
-  # (here: solitude) and applies it automatically via omarchy-theme-set.
-  omarchy theme install "$THEME_URL"
-else
-  # Theme already installed; just make sure it is the active theme.
-  omarchy theme set "$THEME_NAME"
+  mkdir -p "$(dirname "$THEME_DIR")"
+  cp -r "$THEME_SOURCE" "$THEME_DIR"
 fi
 
-echo "Solitude theme applied"
+omarchy theme set "$THEME_NAME"
+
+echo "Rebirth theme applied"

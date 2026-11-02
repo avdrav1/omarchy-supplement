@@ -154,7 +154,7 @@ run ./install-aerc-mail.sh
 run ./set-shell.sh
 
 run ./install-theme.sh
-# After the theme so Shibumi picks up the Solitude colors. install-shibumi.sh also
+# After the theme so Shibumi picks up the Rebirth colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
 run ./install-shibumi.sh
 # After Shibumi: it branches on which bar is installed, and rewrites the group
