@@ -1,0 +1,19 @@
+# Third-party bar widgets, as  <plugin id>  <git url>  <bar section>
+# Added with `omarchy plugin add`, updated on later runs, and placed in the
+# section only when not on the bar yet -- after that its position is that
+# machine's business. Local fixes go in config/plugins/patches/<id>/*.patch.
+# Widgets whose backends need setup (omaqbt, nordvpn, ytmusic-plus, Omastat)
+# have that handled in modules/80-bar-widgets.sh.
+# Skip some on one machine with:  BAR_WIDGETS_SKIP="ayan.nordvpn omaplug" ./setup bar-widgets
+
+aweiward.omaqbt                     https://github.com/Aweiward/omaqbt.git                          left
+ayan.nordvpn                        https://github.com/AyanMulla09/OmaNord.git                      left
+io.github.ilyazar.syncthing         https://github.com/omarchy-QOL/syncshell.git                    left
+av.news                             https://github.com/avdrav1/omarchy-news.git                     left   # news & scores ticker
+local.ytmusic-plus                  https://github.com/Pro-Termux-arch/omarchy-ytmusic-plus.git     left
+omaplug                             https://github.com/fross100/omaplug                             center
+omamail                             https://github.com/huacnlee/omamail.git                         right
+io.github.jeremylanger.omaspotify   https://github.com/jeremylanger/omaspotify.git                  right
+io.github.arthurr0.claude-usage     https://github.com/arthurr0/omarchy-claude-usage.git            right
+cjkaufman.omascale                  https://github.com/CJKaufman/omarchy-omascale                   right  # Tailscale panel; needs --operator (services module)
+jankeesvw.notification-center       https://github.com/jankeesvw/omarchy-notification-center.git    right  # keep far right: its panel pins to the right edge

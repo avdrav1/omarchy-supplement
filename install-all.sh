@@ -136,7 +136,7 @@ run bash modules/72-blueferry.sh
 # the remaining third-party widgets only get placed when not already on the bar,
 # and Shibumi's reconciler then fills whatever v2Layout slots are still free --
 # so the widgets with dedicated installers above get first claim on the slots.
-run ./install-bar-plugins.sh
+run bash modules/80-bar-widgets.sh
 # After Shibumi so omarchy-shell is settled. Unlike the bar installers above it is a
 # *service* plugin, so it only needs shell.json's `plugins` array and never
 # touches the bar layout -- but it still wants to land before the final shell
