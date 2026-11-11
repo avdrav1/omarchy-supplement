@@ -37,7 +37,7 @@ CLONE_DIR="$HOME/.config/omarchy/plugins/$CLONE_ID"
 
 # Swap the search engine per machine without editing this script, e.g.
 #   OMARCHY_MENU_SEARCH_URL='https://duckduckgo.com/?q=' \
-#   OMARCHY_MENU_SEARCH_LABEL='DuckDuckGo' ./install-omarchy-menu-websearch.sh
+#   OMARCHY_MENU_SEARCH_LABEL='DuckDuckGo' modules/90-menu-websearch.sh
 SEARCH_URL="${OMARCHY_MENU_SEARCH_URL:-https://www.google.com/search?q=}"
 SEARCH_LABEL="${OMARCHY_MENU_SEARCH_LABEL:-Google}"
 
@@ -183,7 +183,7 @@ for name, anchor in (("helper", ANCHOR_HELPER), ("call site", ANCHOR_CALL)):
         sys.stderr.write(
             "ERROR: the %s anchor was found %d times in Menu.qml (expected 1).\n"
             "Upstream Omarchy has changed the menu; update the anchors in\n"
-            "install-omarchy-menu-websearch.sh before re-running.\n" % (name, n)
+            "modules/90-menu-websearch.sh before re-running.\n" % (name, n)
         )
         sys.exit(2)
 

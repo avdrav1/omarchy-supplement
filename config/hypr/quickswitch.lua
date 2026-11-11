@@ -1,6 +1,6 @@
 -- QuickSwitch -- macOS-style task switcher with window previews.
 --   Plugin: https://github.com/ewweberlin/QuickSwitch
---   Installed by install-quickswitch.sh (omarchy plugin add --enable).
+--   Installed by modules/81-shell-plugins.sh (omarchy plugin add --enable).
 --
 -- The plugin ships its own bindings file and asks you to dofile it from
 -- ~/.config/hypr/bindings.lua. Load it LAST instead, from init.lua: hyprland.lua
@@ -22,7 +22,7 @@
 -- touched by any of this.
 --
 -- Guarded on existence, not on hostname: this repo is shared by machines that
--- have never run install-quickswitch.sh, and dofile() on a missing path is a
+-- have never run modules/81-shell-plugins.sh, and dofile() on a missing path is a
 -- hard Lua error that would take the whole supplement tree down with it --
 -- including the binds and monitor setup below it. Absent plugin = silent no-op.
 

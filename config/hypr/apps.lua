@@ -1,5 +1,5 @@
--- Hyprland config for apps and shell plugins installed by install-apps.sh and
--- install-shell-plugins.sh. Every block is guarded on the app or plugin being
+-- Hyprland config for apps and shell plugins installed by modules/10-packages.sh and
+-- modules/81-shell-plugins.sh. Every block is guarded on the app or plugin being
 -- present, so a machine that skipped one gets nothing from it rather than a
 -- bind that launches nothing.
 --

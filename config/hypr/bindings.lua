@@ -66,7 +66,7 @@ o.bind("SUPER + SHIFT + K", "Show key bindings", "omarchy-menu-keybindings")
 -- "focus next window / bring to top" from default/hypr/bindings/tiling.lua.
 
 -- BlueFerry -- an iPhone's SMS/RCS/iMessage over Bluetooth. Installed by
--- install-blueferry.sh, which also places its widget on the bar.
+-- modules/72-blueferry.sh, which also places its widget on the bar.
 --
 -- No unbind needed: SUPER+M is free in stock Omarchy. SUPER+SHIFT+M is Music
 -- and SUPER+ALT+SHIFT+M the music TUI, so this sits in the same mnemonic

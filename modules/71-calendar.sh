@@ -13,7 +13,7 @@ source "$(dirname "$0")/../lib/common.sh"
 #     omarchy bar move promaa.clock --section center
 #     sed -i 's/"centerAnchor": "[^"]*"/"centerAnchor": "promaa.clock"/' shell.json
 #
-# On a Shibumi machine (install-shibumi.sh), which is what this fleet runs, all
+# On a Shibumi machine (modules/70-shibumi.sh), which is what this fleet runs, all
 # three are silent no-ops:
 #
 #   * The visible clock is NOT omarchy.clock. Shibumi draws it inside
@@ -93,7 +93,7 @@ if [ -d "$PLUGIN_DIR/.git" ]; then
   # rewritten its history (v1.4.x) -- a checkout from before that, or one with a
   # hand-patched file, can never fast-forward. The installed version keeps
   # working, and the bar-layout work below still has to run, so warn and go on
-  # (same policy as install-bar-plugins.sh). To take the update anyway:
+  # (same policy as modules/80-bar-widgets.sh). To take the update anyway:
   #   git -C "$PLUGIN_DIR" fetch && git -C "$PLUGIN_DIR" reset --hard origin/main
   omarchy plugin update "$PLUGIN_ID" --yes || {
     echo "  warning: could not update $PLUGIN_ID (local changes or rewritten upstream);" >&2
@@ -117,7 +117,7 @@ fi
 # A clone is a frozen copy: once Omarchy ships a new version of the widget the
 # clone keeps running the old code, and if the shell's widget API moved under it
 # the widget just errors out and silently vanishes from the bar. Unlike the
-# omarchy.menu clone in install-omarchy-menu-websearch.sh these are byte-identical
+# omarchy.menu clone in modules/90-menu-websearch.sh these are byte-identical
 # copies (the one exception, the Display clone, is patched by an idempotent
 # re-apply after every clone -- see patch_display_null_bar), so we can simply
 # re-clone whenever the Omarchy package version has moved. The stamp lives

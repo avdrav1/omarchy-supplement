@@ -86,7 +86,7 @@ if [ "${BLUEFERRY_FROM_SOURCE:-0}" != 0 ]; then
   # the site-packages directory the package installs into -- producing a
   # package for an interpreter that isn't the one running the daemon.
   # Guarded so a re-run on a provisioned machine never reaches for sudo (and
-  # so can't fail non-interactively inside install-all.sh).
+  # so can't fail non-interactively inside ./setup).
   command -v makepkg >/dev/null || sudo pacman -S --noconfirm --needed base-devel python
   if [ -d "$SRC_DIR/.git" ]; then
     git -C "$SRC_DIR" pull --ff-only
@@ -250,13 +250,13 @@ if [ "${BLUEFERRY_BAR_WIDGET:-1}" != 0 ] \
     exit 1
   }
 
-  # On a Shibumi bar (install-shibumi.sh) bar.layout only decides which plugins
+  # On a Shibumi bar (modules/70-shibumi.sh) bar.layout only decides which plugins
   # get *loaded*; the arrangement comes from bar.shibumi.v2Layout (or .order in
   # the v1 pill style), where a third-party widget is the entry "G:<plugin id>".
   # Without that entry the plugin loads and renders nowhere -- which reads
   # exactly like "the widget is broken".
   #
-  # Two invariants from install-sync-calendar.sh's header apply here too, and
+  # Two invariants from modules/71-calendar.sh's header apply here too, and
   # both fail silently: every fixed group G1..G18 must stay in the layout or
   # Shibumi discards the whole thing and falls back to its built-in default,
   # and the run caps (13 per side) are enforced by the same validator. This
