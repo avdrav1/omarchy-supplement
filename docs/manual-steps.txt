@@ -3,8 +3,8 @@
   Manual steps to finish setup
 ============================================================
 
-1. Log out and back in (or reboot): zsh becomes the login shell, the nordvpn
-   group applies, and apps pick up EDITOR=fresh.
+1. Log out and back in (or reboot): zsh becomes the login shell and apps pick
+   up EDITOR=fresh.
 
 2. Display scale (new machine):  edit config/hypr/hosts/<hostname>.lua, set
    scale (1.5 or 2 for a HiDPI laptop panel, 1 for 1080p/1440p), then run
@@ -28,30 +28,11 @@
    - oama authorize google <addr> for each account ./setup services lists,
      then `mbsync -a` and open aerc.
 
-7. Calendar clock:  it renders empty until it has a feed. Click it -> settings
-   gear -> Add Calendar, or edit ~/.config/omarchy/calendars.json (private
-   URLs and tokens, so never tracked or synced). Two traps that "sync" fine
-   and show nothing: keep the outer [ ] (the file is an ARRAY), and check the
-   calendar id inside a Google secret address belongs to the right account.
-   Google Workspace hides the secret address until an admin allows external
-   sharing (Calendar -> Sharing settings -> one of the bottom two options).
-
-8. BlueFerry (iPhone messages):  keep the iPhone unlocked on Settings ->
-   Bluetooth, press SUPER+M (or `blueferry pair-setup`), Scan -> select the
-   phone -> Pair, and confirm the code on both sides (~15s to appear). Then on
-   the PHONE tap (i) beside this computer and enable "Show Message
-   Notifications" and "Sync Contacts" (reopen the page if they're missing), and
-   approve "Allow System Notifications". Check with `blueferry doctor`.
-
-9. Bar widgets, each signed in from its own panel: NordVPN (after re-login),
-   Omamail, Omaspotify (Spotify Premium), Syncthing, Claude usage (needs
-   `claude` signed in).
-
-10. Omarchy iCloud Photos:  open it from the launcher and sign in with the
-    Apple ID (2FA); its sync timer takes over from there.
+7. Omarchy iCloud Photos:  open it from the launcher and sign in with the
+   Apple ID (2FA); its sync timer takes over from there.
 
 After every Hyprland upgrade:  hyprpm update && hyprpm reload  (or
 ./setup hyprland) -- otherwise the scroll overview (ALT+`) silently stops.
-After every `omarchy update`:  ./setup menu-websearch  -- re-clones the menu
-from the new release and re-applies the web-search patch.
+After every Shibumi update outside ./setup:  ./setup shibumi  -- re-applies
+the startup fix, or the bar disappears.
 ============================================================

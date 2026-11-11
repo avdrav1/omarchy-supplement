@@ -8,7 +8,7 @@ REPO_URL="https://github.com/avdrav1/dotfiles"
 # Linked file by file (`stow --no-folding`), so a directory an app also writes
 # runtime state into (~/.config/Code, ~/.config/vesktop, ~/.config/omarchy...)
 # stays a real directory and that state never lands in the repo.
-FILE_PACKAGES=(zshrc ghostty aerc-mail vscode fcitx5 omarchy-plugins vesktop herdr)
+FILE_PACKAGES=(zshrc ghostty aerc-mail vscode fcitx5 vesktop herdr)
 # Linked as a whole directory: the repo owns the entire config.
 DIR_PACKAGES=(nvim)
 # Not stowed: `starship` (modules/20-shell.sh writes the upstream preset instead).

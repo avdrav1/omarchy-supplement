@@ -15,8 +15,7 @@ user_service syncthing.service
 step "Tailscale"
 system_service tailscaled.service
 if tailscale status &>/dev/null; then
-  # Operator = this user may change prefs without sudo; the OmaScale bar widget
-  # depends on it (exit node, up/down).
+  # Operator = this user may change prefs (exit node, up/down) without sudo.
   [ "$(tailscale debug prefs 2>/dev/null | jq -r '.OperatorUser // ""')" = "$USER" ] ||
     sudo tailscale set --operator="$USER"
 else

@@ -12,11 +12,13 @@ and check its side effects. Every other machine is set up from a **fresh**
 Omarchy install, so don't add code that migrates old setups.
 
 The alienware host is the reference machine. Something set up there by hand (an
-app, widget, bind, theme) only reaches other machines once it's added here.
+app, bind, theme) only reaches other machines once it's added here. Shibumi is
+the only Omarchy shell plugin on these machines; don't add third-party widgets
+or shell plugins without being asked.
 
 ## Conventions
 
-- **Lists over scripts.** A new app or widget is a line in `manifest/`; a new
+- **Lists over scripts.** A new app is a line in `manifest/`; a new
   module is only for something that needs real logic.
 - **Don't duplicate Omarchy.** Check `/usr/share/omarchy/install/*.packages`,
   `/etc/mise/conf.d/omarchy-tools.toml` and `omarchy install --help` before

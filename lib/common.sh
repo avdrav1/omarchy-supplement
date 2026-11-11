@@ -106,4 +106,3 @@ SHELL_JSON="$HOME/.config/omarchy/shell.json"
 PLUGINS_DIR="$HOME/.config/omarchy/plugins"
 
 in_session() { [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; }
-shell_rescan() { omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true; }

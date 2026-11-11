@@ -1,8 +1,8 @@
 # omarchy-supplement
 
 Everything that turns a fresh [Omarchy](https://omarchy.org/) install into one
-of my machines: apps, shell, dotfiles, Hyprland overrides, theme, the Shibumi
-bar and its widgets, and shell plugins. Anything Omarchy already installs or
+of my machines: apps, shell, dotfiles, Hyprland overrides, theme, and the
+Shibumi bar (the only shell plugin). Anything Omarchy already installs or
 configures is left to Omarchy.
 
 ## Use
@@ -26,13 +26,13 @@ they're listed at the end. Every module is safe to re-run.
 | `setup` | Entry point |
 | `lib/common.sh` | Helpers every module uses (`pkg`, `omarchy_install`, `seed`, `put`, services) |
 | `modules/NN-name.sh` | One area each, run in `NN` order |
-| `manifest/` | Plain lists of what gets installed: packages, Omarchy installers, web apps, curl-installed apps, bar widgets |
-| `config/` | Files placed on the machine: `hypr/` (Lua overrides + per-host scale), `themes/`, `shibumi/`, `blueferry/`, `plugins/` (patches + seeded settings), `pacman/` |
+| `manifest/` | Plain lists of what gets installed: packages, Omarchy installers, web apps, curl-installed apps |
+| `config/` | Files placed on the machine: `hypr/` (Lua overrides + per-host scale), `themes/`, `shibumi/` (saved bar settings), `pacman/` |
 | `assets/icons/` | Icons for web apps and launchers |
 | `tools/` | Helpers run by hand |
 | `docs/manual-steps.txt` | What still needs a human after `setup` |
 
-Dotfiles (zsh, nvim, ghostty, aerc, VS Code, Vesktop, herdr, widget settings)
+Dotfiles (zsh, nvim, ghostty, aerc, VS Code, Vesktop, herdr)
 live in the separate [`avdrav1/dotfiles`](https://github.com/avdrav1/dotfiles)
 repo; `modules/30-dotfiles.sh` clones and stows it.
 
@@ -40,8 +40,6 @@ repo; `modules/30-dotfiles.sh` clones and stows it.
 
 - **Add an app:** one line in `manifest/packages.txt` (or `omarchy.txt`,
   `webapps.txt`, `script-apps.txt`), then `./setup packages`.
-- **Add a bar widget:** one line in `manifest/bar-widgets.txt`, then
-  `./setup bar-widgets`.
 - **Change a keybinding or window rule:** edit `config/hypr/*.lua`; Hyprland
   reloads on save. Check with `hyprctl configerrors`.
 - **Set a machine's display scale:** edit `config/hypr/hosts/<hostname>.lua`,
