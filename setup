@@ -1,0 +1,101 @@
+#!/bin/bash
+# Provision this machine on top of a fresh Omarchy install.
+#
+#   ./setup                  run every module, in order
+#   ./setup shell hyprland   run only the named modules
+#   ./setup --list           list the modules
+#
+# Modules live in modules/NN-<name>.sh and run in NN order, each in its own
+# process. A failing module is reported at the end; it does not stop the run.
+# SUPPLEMENT_NO_PULL=1 skips the self-update (for testing uncommitted changes).
+
+cd "$(dirname "$(readlink -f "$0")")" || exit 1
+source lib/common.sh
+set +e # modules fail individually; the summary below reports them
+
+module_name() { basename "$1" .sh | sed 's/^[0-9]*-//'; }
+MODULES=(modules/[0-9]*.sh)
+
+if [ "${1:-}" = --list ]; then
+  for m in "${MODULES[@]}"; do
+    printf '  %-16s %s\n' "$(module_name "$m")" "$(sed -n '2s/^# *//p' "$m")"
+  done
+  exit 0
+fi
+
+# Pick modules: all, or the ones named on the command line.
+SELECTED=()
+if (($#)); then
+  for want in "$@"; do
+    found=
+    for m in "${MODULES[@]}"; do
+      [ "$(module_name "$m")" = "$want" ] && { SELECTED+=("$m"); found=1; }
+    done
+    [ -n "$found" ] || die "no module named '$want' (see ./setup --list)"
+  done
+else
+  SELECTED=("${MODULES[@]}")
+fi
+
+# ── Self-update ──────────────────────────────────────────────────────────────
+# GitHub is the source of truth (Syncthing deliberately skips .git). Fast-
+# forward only, and re-exec when HEAD moves so the rest of the run is the new code.
+if [ "${SUPPLEMENT_NO_PULL:-0}" = 0 ] && [ -d .git ]; then
+  before=$(git rev-parse HEAD 2>/dev/null)
+  if git pull --ff-only --quiet 2>/dev/null; then
+    if [ "$(git rev-parse HEAD)" != "$before" ]; then
+      step "omarchy-supplement updated ($(git log --oneline -1)); restarting"
+      SUPPLEMENT_NO_PULL=1 exec "$0" "$@"
+    fi
+  else
+    warn "could not fast-forward omarchy-supplement; using the checked-out version"
+  fi
+fi
+
+# ── Preflight ────────────────────────────────────────────────────────────────
+# A repo section declared twice in pacman.conf makes yay fail on every package
+# with an error that never mentions pacman.conf.
+dupes=$(awk -F'[][]' '/^\[/ && $2 != "options" {c[$2]++} END {for (r in c) if (c[r] > 1) print r}' /etc/pacman.conf)
+[ -z "$dupes" ] || die "duplicate repo section(s) in /etc/pacman.conf: $dupes -- remove them and re-run"
+
+# Authenticate sudo once, keep it alive in the background, and re-check before
+# each module (a long AUR or hyprpm build can outlast the keepalive). If sudo
+# can't be re-acquired (no tty), skip the remaining modules instead of letting
+# each one build for minutes and then fail at the pacman step.
+sudo -v || die "setup needs sudo; run it in an interactive terminal"
+(while kill -0 $$ 2>/dev/null; do sudo -n true 2>/dev/null; sleep 60; done) &
+KEEPALIVE=$!
+trap 'kill $KEEPALIVE 2>/dev/null' EXIT
+
+sudo_ok() {
+  sudo -n true 2>/dev/null && return 0
+  warn "sudo credential lapsed; re-authenticating"
+  sudo -v
+}
+
+# ── Run ──────────────────────────────────────────────────────────────────────
+FAILED=()
+for m in "${SELECTED[@]}"; do
+  name=$(module_name "$m")
+  echo
+  echo "────────── $name ──────────"
+  if ! sudo_ok; then
+    FAILED+=("$name (no sudo)")
+    continue
+  fi
+  bash "$m" || FAILED+=("$name (exit $?)")
+done
+
+# Manual steps only make sense after a full run.
+(($#)) || cat docs/manual-steps.txt
+
+if ((${#FAILED[@]})); then
+  echo
+  echo "============================================================"
+  echo "  ${#FAILED[@]} module(s) FAILED -- setup is incomplete"
+  echo "============================================================"
+  printf '  - %s\n' "${FAILED[@]}"
+  echo
+  echo "  Re-run one with: ./setup <module>"
+  exit 1
+fi

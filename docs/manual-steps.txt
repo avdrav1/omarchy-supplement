@@ -1,0 +1,83 @@
+
+============================================================
+  Manual steps to finish setup
+============================================================
+
+1. Log out and back in (or reboot) to apply session changes:
+   - zsh becomes your default shell (chsh).
+   - Shibumi Shell runs inside the stock omarchy-shell (installed as Omarchy
+     plugins), so no separate autostart is needed. install-shibumi.sh turns the
+     stock bar back on and restarts the shell; a fresh login also picks it up.
+   - Open terminals/aerc pick up the new $EDITOR (fresh).
+
+2. Display scale (per machine):
+   Edit hypr/lua/hosts/<hostname>.lua and set scale (1.5 HiDPI, 1 native),
+   then re-run ./install-hyprland-overrides.sh and hyprctl reload, and commit
+   the host file. The re-run is REQUIRED: it regenerates
+   ~/.config/hypr/monitors.lua, which omarchy-hyprland-monitor-clamshell greps
+   every 2s to reapply the scale. Wait ~5s before checking hyprctl monitors.
+
+3. Sign in to apps (no automated auth):
+   - Claude Code CLI:  run `claude` and authenticate.
+   - Claude Desktop, GitHub Desktop, Slack:  sign in on first launch.
+   - Vivaldi:  optional Vivaldi Sync; re-add Mail/Calendar accounts per machine.
+
+4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
+
+5. Hyprland plugins (hyprpm):  after EVERY Hyprland upgrade, rebuild or the
+   scroll-overview plugin silently stops loading -- ALT+` just does nothing.
+   Under the Lua config there is no error to notice: hypr/lua/scrolloverview.lua
+   no-ops when the plugin is absent (the old .conf setup at least showed
+   "Invalid dispatcher" in `hyprctl configerrors`). To rebuild:
+       hyprpm update && hyprpm reload
+   A pacman hook prints this reminder post-upgrade; it can't run the rebuild
+   itself because hyprpm needs an interactive sudo.
+
+6. Omarchy menu web-search fallback:  after every `omarchy update`, re-run
+   ./install-omarchy-menu-websearch.sh
+   It clones and patches the omarchy.menu plugin, so an Omarchy release that
+   ships a new menu leaves the clone frozen on the old one. The re-run
+   re-clones from the updated /usr/share/omarchy and re-applies the patch.
+
+7. Calendar Sync clock (per machine):  the bar clock renders empty until it has
+   a feed. Click it -> settings gear -> Add Calendar, or write
+   ~/.config/omarchy/calendars.json directly (it hot-reloads). That file holds
+   private .ics URLs and JMAP bearer tokens, so it is deliberately NOT tracked
+   in this repo and does not sync -- add feeds on each machine.
+   Two traps, both of which sync "successfully" and just show nothing:
+   - Keep the outer [ ] -- the file is an ARRAY of calendars. A bare object
+     makes fetch-events.py die on an AttributeError nothing surfaces.
+   - Check the calendar id inside the URL (.../ical/<id>/private-.../basic.ics)
+     is the account you actually use. A Google secret address copied from the
+     wrong account fetches fine and reports status "ok" with no events.
+   Google Workspace hides the secret address until an admin sets Calendar ->
+   Sharing settings -> External sharing options to one of the bottom two.
+
+8. BlueFerry (iPhone messages):  pairing is interactive and per machine.
+   Keep the iPhone unlocked on Settings -> Bluetooth, press SUPER+M (or run
+   `blueferry pair-setup`), then Scan -> select the phone -> Pair and confirm
+   the same code on both sides; it can take ~15s to appear. Afterwards tap the
+   (i) beside this computer ON THE PHONE and enable "Show Message
+   Notifications" and "Sync Contacts" -- if those toggles are missing, back out
+   to the device list and reopen the (i) page a few times. Approve "Allow
+   System Notifications" and the desktop wallet prompt too.
+   Without the notification permission, messages and contacts still work but a
+   group message can look like a direct one from whoever sent it.
+   Check with `blueferry doctor` / `journalctl --user -u blueferry -f`.
+
+9. Gmail / aerc (OAuth2, one-time per machine):
+   - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
+     screen (External, PUBLISH) -> create OAuth client ID (Desktop app).
+   - oama template > ~/.config/oama/config.yaml   # set GPG key + client_id/secret
+   - oama authorize google <addr>  (per account), then `mbsync -a` and open aerc.
+
+10. Bar widgets (install-bar-plugins.sh), each signed in from its own panel:
+   NordVPN (log out/in first -- the nordvpn group is new), Omamail (mail
+   account), Omaspotify (Spotify Premium), Syncthing (pair devices), Claude
+   usage (needs `claude` logged in). Apps: 1Password, Vesktop (Discord),
+   Codex, Perplexity, Steam, Zed.
+
+11. Omarchy iCloud Photos:  open it from the launcher and sign in with the
+   Apple ID (2FA prompt); the sync timer picks up from there.
+
+============================================================

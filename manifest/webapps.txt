@@ -1,0 +1,8 @@
+# Web apps beyond Omarchy's stock set, as  name | url | icon
+# The icon is a file in assets/icons/, or empty to fetch the site's own.
+# Skipped when ~/.local/share/applications/<name>.desktop already exists.
+
+amazon      | https://amazon.com     | amazon.png
+netflix     | https://netflix.com    | netflix.png
+nugs        | https://nugs.net       |
+Bisco Radio | https://biscomusic.com | bisco-radio.png

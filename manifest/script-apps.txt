@@ -1,0 +1,10 @@
+# Apps that only ship a `curl | sh` installer, as  <command> <url> [installer args]
+# Each installs into ~/.local/bin and updates itself; skipped once the command exists.
+
+tidemail   https://raw.githubusercontent.com/allisonhere/tidemail/main/install.sh
+llmfit     https://llmfit.axjns.dev/install.sh --local    # --local: no sudo prompt
+gutenberg  https://gutenbergapp.com/install.sh            # news reader
+brick      https://brick.cronkite.cc/install.sh           # spreadsheet
+slate      https://slate.cronkite.cc/install.sh
+frame      https://frame.cronkite.cc/install.sh
+etch       https://etch.cronkite.cc/install.sh            # image editor

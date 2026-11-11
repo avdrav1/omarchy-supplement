@@ -1,0 +1,26 @@
+# Packages installed with yay (official repos, Omarchy repo or AUR), one per
+# line. Anything Omarchy installs by default does NOT belong here.
+# Packages a module needs for its own job (mail stack, widget backends, Shibumi
+# fonts...) live in that module instead.
+
+zsh
+ghostty
+stow                    # dotfiles
+fresh-editor-bin        # default editor (see modules/50-services.sh)
+
+# Apps
+vivaldi
+vivaldi-ffmpeg-codecs   # H.264 / Widevine playback
+claude-desktop          # Anthropic's official build (Chat, Cowork, Code)
+github-desktop-bin
+discord
+vesktop-bin             # Discord client; SUPER+D and autostart in config/hypr/apps.lua
+openai-codex-desktop
+perplexity
+godot
+android-tools           # adb / fastboot
+clock-tui-bin           # tclock
+
+# Services (enabled in modules/50-services.sh)
+syncthing
+tailscale

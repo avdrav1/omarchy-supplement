@@ -1,0 +1,11 @@
+# Apps installed through Omarchy's own installers (`omarchy install ...`),
+# which add Omarchy theming and defaults on top of the package. Each line is:
+#   <command that exists once installed>   <omarchy install arguments>
+# The installer is skipped when the command already exists. Note that these
+# installers open the app when they finish.
+
+code        editor vscode       # VS Code + libsecret password store + theme
+zed         editor zed          # Zed + omazed theme sync
+slack       service slack       # Slack with live Omarchy theme
+1password   service 1password   # 1Password + CLI + browser extension
+steam       gaming steam        # lib32 GPU drivers first, then Steam

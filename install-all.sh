@@ -114,20 +114,11 @@ run() {
 }
 
 # Install all packages in order
+run bash modules/10-packages.sh
 run ./install-zsh.sh
-run ./install-ghostty.sh
-run ./install-github-desktop.sh
-run ./install-claude-desktop.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
-run ./install-vivaldi.sh
-run ./install-vscode.sh
-run ./install-slack.sh
-# Apps + web apps the reference machine has that no dedicated installer covers.
-# Needs yay (Omarchy base) and omarchy-webapp-install; no other ordering needs.
-run ./install-apps.sh
 
-run ./install-stow.sh
 run ./install-dotfiles.sh
 # After dotfiles: it clears and re-stows ~/.config, so the starship preset has
 # to be written afterwards or a leftover `stow starship` symlink wins.
