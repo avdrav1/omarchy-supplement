@@ -14,3 +14,11 @@ if o.cmd_present("vesktop") then
   o.transparent_window("^vesktop$")
   o.window({ class = "^vesktop$", title = "^Discord Popout$" }, { tag = "+pip" })
 end
+
+-- Gutenberg news reader (gutenbergapp.com) on SUPER+N, which is free in stock
+-- Omarchy. Its installer puts the binary in ~/.local/bin, which isn't always on
+-- Hyprland's PATH, so it is launched by full path.
+local gutenberg = os.getenv("HOME") .. "/.local/bin/gutenberg"
+if o.cmd_present(gutenberg) then
+  o.bind("SUPER + N", "Gutenberg", { launch = gutenberg })
+end

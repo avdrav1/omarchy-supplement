@@ -50,6 +50,21 @@ EOF
   note "added the Gutenberg launcher entry"
 fi
 
+# Cronkite (cronkite.cc) is the office suite: Slate (documents), Brick
+# (spreadsheets) and Frame (slides) become the default for every file type
+# their launchers declare, except text/plain, which stays with the text editor.
+# LibreOffice (an Omarchy base package) keeps the formats Cronkite can't open:
+# OpenDocument, legacy .doc/.xls/.ppt, and .rtf.
+step "Office suite: Cronkite"
+for app in dev.cronkite.Slate dev.cronkite.Brick dev.cronkite.Frame; do
+  desktop="$APPS_DIR/$app.desktop"
+  [ -f "$desktop" ] || { warn "$app is not installed"; continue; }
+  for mime in $(sed -n 's/^MimeType=//p' "$desktop" | tr ';' ' '); do
+    [ "$mime" = text/plain ] && continue
+    [ "$(xdg-mime query default "$mime")" = "$app.desktop" ] || xdg-mime default "$app.desktop" "$mime"
+  done
+done
+
 # Omarchy iCloud Photos: recent iCloud photos in a launcher, plus a sync timer.
 # Cloned under ~/Documents (which Syncthing may already have delivered); its
 # install.sh symlinks into the checkout. The Apple sign-in is per machine.
