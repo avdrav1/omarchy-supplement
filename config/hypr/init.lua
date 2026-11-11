@@ -1,12 +1,7 @@
 -- Entry point for the omarchy-supplement Hyprland overrides (Lua parser).
 --
--- Omarchy migrated Hyprland config from hyprlang (.conf) to Lua. The legacy
--- tree in this repo -- hyprland-overrides.conf plus hosts/<hostname>.conf --
--- is kept for machines still on the old parser; the modules here are the Lua
--- equivalent. install-hyprland-overrides.sh picks whichever the machine needs.
---
--- Wiring: install-hyprland-overrides.sh symlinks ~/.config/supplement to this
--- directory and appends `require("supplement.init")` to ~/.config/hypr/hyprland.lua.
+-- Wiring: modules/40-hyprland.sh symlinks ~/.config/supplement to this
+-- directory and appends a dofile() of this file to ~/.config/hypr/hyprland.lua.
 -- Hyprland's package.path already covers ~/.config/?.lua, so no path setup is
 -- needed here. This is required LAST, after Omarchy's defaults, so everything
 -- below overrides them.
@@ -33,8 +28,8 @@ end
 -- omarchy-hyprland-monitor-watch daemon polls every 2s and force-reapplies the
 -- internal display's scale, parsing it out of ~/.config/hypr/monitors.lua with
 -- sed -- so any hl.monitor rule set from this tree is overwritten within
--- seconds. install-hyprland-overrides.sh instead renders that file from
--- hosts/<hostname>.lua. See hypr/lua/hosts/default.lua.
+-- seconds. modules/40-hyprland.sh instead renders that file from
+-- hosts/<hostname>.lua. See hosts/default.lua.
 
 require("supplement.input")
 require("supplement.bindings")

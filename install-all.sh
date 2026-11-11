@@ -120,10 +120,7 @@ run ./install-syncthing.sh
 run ./install-tailscale.sh
 
 run bash modules/30-dotfiles.sh
-run ./install-hyprland-overrides.sh
-# After hyprland-overrides so the plugin{} block and binds are already sourced
-# when hyprpm loads the plugin.
-run ./install-hyprland-scroll-overview.sh
+run bash modules/40-hyprland.sh
 run ./install-editor.sh
 # After dotfiles stow so mbsync.timer exists before the installer enables it.
 run ./install-aerc-mail.sh

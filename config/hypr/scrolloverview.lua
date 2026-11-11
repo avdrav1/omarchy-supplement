@@ -1,7 +1,7 @@
 -- hyprland-scroll-overview (hyprpm plugin "scrolloverview", by yayuuu).
 -- Workspace overview driven by touchpad scroll.
 -- Upstream: https://github.com/yayuuu/hyprland-scroll-overview
--- Installed by install-hyprland-scroll-overview.sh.
+-- Installed by modules/40-hyprland.sh.
 --
 -- The plugin is built by hyprpm against the *currently installed* Hyprland, so
 -- after every Hyprland upgrade it must be rebuilt with `hyprpm update` or it
@@ -23,9 +23,8 @@
 --   multi-step select relies on immediate execution.
 --
 -- * Plugin config keys and the Lua namespace only exist once the plugin has
---   loaded, so everything here is behind the load guard. Unlike the legacy
---   config, an absent plugin is silent rather than a wall of "Invalid
---   dispatcher" in `hyprctl configerrors`.
+--   loaded, so everything here is behind the load guard. An absent plugin is
+--   silent: nothing shows in `hyprctl configerrors`.
 --
 -- * Do NOT call hl.plugin.load(path) from here. On 0.55.4 it does not merely
 --   fail -- calling it during config evaluation DEADLOCKS the compositor before
@@ -34,11 +33,10 @@
 --   a blank screen after login, with only a TTY to recover from. The symptom is
 --   the main thread parked in do_wait rather than do_epoll_wait. It only bites
 --   once hyprpm has actually built the .so, which is why logins keep working
---   until install-hyprland-scroll-overview.sh is run.
+--   until modules/40-hyprland.sh is run.
 --
 -- * The only working load path is `hyprpm reload`, hence the start hook below
---   (the hyprlang tree does the same with `exec-once = hyprpm reload -n`). It
---   needs no sudo -- the .so in the root-owned cache is world-readable.
+--   It needs no sudo -- the .so in the root-owned cache is world-readable.
 
 local plugin = hl.plugin.scrolloverview
 
@@ -51,7 +49,7 @@ if not plugin then
   -- hl.on("hyprland.start") fires once per session, not on `hyprctl reload`, so
   -- the nested reload cannot recurse. A manual reload while the plugin is
   -- genuinely missing (not built, or not rebuilt since the last Hyprland
-  -- upgrade -- run ./install-hyprland-scroll-overview.sh) just returns silently.
+  -- upgrade -- run ./setup hyprland) just returns silently.
   o.exec_on_start("hyprpm reload -n && hyprctl reload")
   return
 end
