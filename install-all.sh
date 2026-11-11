@@ -115,14 +115,11 @@ run() {
 
 # Install all packages in order
 run bash modules/10-packages.sh
-run ./install-zsh.sh
+run bash modules/20-shell.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
 
 run ./install-dotfiles.sh
-# After dotfiles: it clears and re-stows ~/.config, so the starship preset has
-# to be written afterwards or a leftover `stow starship` symlink wins.
-run ./install-starship.sh
 run ./install-hyprland-overrides.sh
 # After hyprland-overrides so the plugin{} block and binds are already sourced
 # when hyprpm loads the plugin.
@@ -130,7 +127,6 @@ run ./install-hyprland-scroll-overview.sh
 run ./install-editor.sh
 # After dotfiles stow so mbsync.timer exists before the installer enables it.
 run ./install-aerc-mail.sh
-run ./set-shell.sh
 
 run ./install-theme.sh
 # After the theme so Shibumi picks up the Rebirth colors. install-shibumi.sh also
