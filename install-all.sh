@@ -116,14 +116,10 @@ run() {
 # Install all packages in order
 run bash modules/10-packages.sh
 run bash modules/20-shell.sh
-run ./install-syncthing.sh
-run ./install-tailscale.sh
 
 run bash modules/30-dotfiles.sh
 run bash modules/40-hyprland.sh
-run ./install-editor.sh
-# After dotfiles stow so mbsync.timer exists before the installer enables it.
-run ./install-aerc-mail.sh
+run bash modules/50-services.sh
 
 run ./install-theme.sh
 # After the theme so Shibumi picks up the Rebirth colors. install-shibumi.sh also
