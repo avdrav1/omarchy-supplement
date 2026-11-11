@@ -9,7 +9,7 @@ configures is left to Omarchy.
 
 ```sh
 git clone https://github.com/avdrav1/omarchy-supplement ~/omarchy-supplement
-~/omarchy-supplement/setup            # everything, then the manual steps
+~/omarchy-supplement/install-all.sh   # everything, then the manual steps (same as ./setup)
 ~/omarchy-supplement/setup --list     # what the modules are
 ~/omarchy-supplement/setup hyprland   # just one (or several) modules
 ```
