@@ -1,6 +1,6 @@
 #!/bin/bash
-
-set -euo pipefail
+# Calendar Sync bar clock, wired into the Shibumi layout
+source "$(dirname "$0")/../lib/common.sh"
 
 # Install promaaa's Calendar Sync clock -- a bar clock that syncs Google,
 # iCloud, Proton, Outlook, Fastmail/JMAP, Nextcloud and generic .ics feeds into
@@ -63,14 +63,6 @@ set -euo pipefail
 REPO_URL="https://github.com/promaaa/sync-calendar-omarchy.git"
 PLUGIN_ID="promaa.clock"
 PLUGIN_DIR="$HOME/.config/omarchy/plugins/$PLUGIN_ID"
-SHELL_JSON="$HOME/.config/omarchy/shell.json"
-
-# Omarchy's bin dir is not guaranteed on PATH in a non-interactive run; without
-# it every omarchy-* call below would silently do nothing.
-for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
-  [ -d "$d" ] && PATH="$d:$PATH"
-done
-export PATH
 
 command -v omarchy >/dev/null 2>&1 || {
   echo "ERROR: the omarchy CLI is not on PATH; is this an Omarchy machine?" >&2

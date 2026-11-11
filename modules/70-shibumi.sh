@@ -1,19 +1,15 @@
 #!/bin/bash
+# Shibumi Shell bar and plugin suite, built from the latest release tag
+source "$(dirname "$0")/../lib/common.sh"
 
-set -euo pipefail
-
-# Install Shibumi Shell -- HANCORE-linux's native bar and plugin suite for
-# Omarchy Quattro -- from source, and retire the older Quickshell Rise bar it
-# supersedes.
+# Shibumi Shell -- HANCORE-linux's bar and plugin suite for Omarchy 4.
 #   Upstream: https://github.com/HANCORE-linux/Shibumi-Shell
 #
-# Unlike Rise (a standalone `qs` instance launched by an Omarchy post-boot hook
-# from ~/.config/quickshell/bar), Shibumi installs as ~24 Omarchy plugins under
-# ~/.config/omarchy/plugins and edits ~/.config/omarchy/shell.json, so it runs
-# *inside* the stock omarchy-shell process rather than alongside it. Its own
-# `shibumi-suite` CLI does that transactionally (and is reversible via
-# `shibumi-suite uninstall`); this script only wraps it with the package,
-# clone, and Rise-teardown steps upstream leaves to the user.
+# Shibumi installs as ~24 Omarchy plugins under ~/.config/omarchy/plugins and
+# edits ~/.config/omarchy/shell.json, so it runs inside the stock omarchy-shell.
+# Its own `shibumi-suite` CLI does that transactionally (and is reversible via
+# `shibumi-suite uninstall`); this module wraps it with the dependencies, the
+# source checkout, and the saved settings.
 #
 # Requires Omarchy Quattro (Omarchy 4) and Quickshell 0.3.0+. The suite itself
 # refuses to run on anything else, so we don't re-check here.
@@ -31,13 +27,7 @@ deps=(
   libnotify wl-clipboard ttf-material-symbols-variable
   ttf-jetbrains-mono-nerd-basic noto-fonts-cjk adwaita-fonts
 )
-missing=()
-for pkg in "${deps[@]}"; do
-  pacman -Qq "$pkg" &>/dev/null || missing+=("$pkg")
-done
-if ((${#missing[@]})); then
-  sudo pacman -S --noconfirm --needed "${missing[@]}"
-fi
+pkg "${deps[@]}"
 
 # ── Source checkout ──────────────────────────────────────────────────────────
 # Keep a persistent clone: `shibumi-suite update` re-runs from it, and the
@@ -92,9 +82,6 @@ fi
 shell_running() { pgrep -f '^(/usr/bin/)?quickshell .*-p /usr/share/omarchy/shell' >/dev/null; }
 if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && ! shell_running; then
   echo "omarchy-shell is not running; restarting it..."
-  for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
-    [ -d "$d" ] && PATH="$d:$PATH"
-  done
   omarchy-restart-shell >/dev/null 2>&1 || omarchy restart shell >/dev/null 2>&1 || true
   for _ in {1..10}; do shell_running && break; sleep 1; done
   if ! shell_running; then
@@ -103,41 +90,6 @@ if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && ! shell_running; then
     echo "Nothing was changed." >&2
     exit 1
   fi
-fi
-
-# ── Recover an install too old to update ─────────────────────────────────────
-# Each suite release only updates from a fixed list of predecessor identities
-# (currently beta.11 and later). An older install -- e.g. a machine last set up
-# at v0.1.1-beta.7 -- makes `update` refuse with "installed identity is
-# unsupported" and change nothing, so this installer could never move it on.
-#
-# Upstream's documented fix (docs/install.md, "Supervised recovery"): uninstall
-# with the *exact* old revision recorded in install.json, keeping settings, then
-# install the current release. The old code runs from a throwaway worktree so
-# the main checkout stays where it is. Only the recorded revision is ever used
-# -- if it isn't a known commit we stop rather than guess.
-if { "$SUITE" status 2>&1 || true; } | grep -q 'installed identity is unsupported'; then
-  old_rev="$(jq -r '.sourceRevision // empty' "$STATE_DIR/install.json" 2>/dev/null || true)"
-  if [ -z "$old_rev" ] || ! git -C "$SRC_DIR" cat-file -e "$old_rev^{commit}" 2>/dev/null; then
-    echo "ERROR: Shibumi install is too old to update, and its recorded source" >&2
-    echo "revision (${old_rev:-none}) is not a commit in $SRC_DIR." >&2
-    echo "See 'Supervised recovery' in $SRC_DIR/docs/install.md." >&2
-    exit 1
-  fi
-  echo "Shibumi install ($(git -C "$SRC_DIR" describe --tags --always "$old_rev")) is too old to update;"
-  echo "uninstalling it with its own code (settings kept) before reinstalling..."
-
-  backup="$HOME/shibumi-backup-$(date +%s)"
-  mkdir -p "$backup"
-  cp -a "$HOME/.config/omarchy/shell.json" "$STATE_DIR" "$backup/"
-  echo "  Backed up shell.json and suite state to $backup"
-
-  old_tree="$(mktemp -d)"
-  trap 'git -C "$SRC_DIR" worktree remove --force "$old_tree" 2>/dev/null; rm -rf "$old_tree"' EXIT
-  git -C "$SRC_DIR" worktree add --quiet --detach "$old_tree" "$old_rev"
-  "$old_tree/scripts/shibumi-suite" uninstall --keep-settings --yes
-  git -C "$SRC_DIR" worktree remove --force "$old_tree"
-  trap - EXIT
 fi
 
 # ── Install or update the suite ──────────────────────────────────────────────
@@ -156,16 +108,15 @@ fi
 #
 # Personal settings: Shibumi keeps them in ~/.config/omarchy/shell.json, which
 # neither this repo nor the dotfiles track, so a fresh install comes up with
-# defaults. shibumi/settings.json is the tracked copy (capture it with
-# ./save-shibumi-settings.sh):
+# defaults. config/shibumi/settings.json is the tracked copy (capture it with
+# tools/save-shibumi-settings.sh):
 #   state      -> the State plugin entry's `shibumi` object (layout, widgets,
 #                 presentation, picker, workspace mode...)
 #   barWidgets -> non-Shibumi widgets (e.g. omarchy.keyboard-layout) appended
 #                 to each bar section if not already there
 # Applied only on a first install, so re-runs never clobber control-center
 # changes that haven't been saved back yet.
-SETTINGS_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/shibumi/settings.json"
-SHELL_JSON="$HOME/.config/omarchy/shell.json"
+SETTINGS_FILE="$CONFIG/shibumi/settings.json"
 apply_settings() {
   [ -f "$SETTINGS_FILE" ] || return 0
   echo "Applying saved Shibumi settings from $SETTINGS_FILE..."
@@ -194,61 +145,24 @@ else
   "$SUITE" update --yes || true
 fi
 
-# ── Retire the Quickshell Rise bar ───────────────────────────────────────────
-# Rise ran as a separate `qs` instance and left an Omarchy post-boot launcher,
-# a theme-set hook, helper binaries, and systemd user units behind. Left in
-# place it would keep drawing its own bar over Shibumi's, so tear the whole
-# footprint down. Every step is guarded/idempotent and non-fatal: on a machine
-# that never had Rise (or where a prior run already removed it) this is a no-op.
-echo "Retiring the Quickshell Rise bar (superseded by Shibumi)..."
-
-# 1. Stop the live Rise bar and its update-check units.
-for unit in $(systemctl --user list-units --no-legend 'qsrise-bar-*' 2>/dev/null | awk '{print $1}'); do
-  systemctl --user stop "$unit" 2>/dev/null || true
-done
-systemctl --user disable --now qs-shell-update-check.timer 2>/dev/null || true
-systemctl --user stop qs-shell-update-check.service 2>/dev/null || true
-# Rise's config path (~/.config/quickshell/bar/shell.qml) appears only in
-# Quickshell's *instance registry*, never in the process cmdline -- a Rise
-# process reads `qs -n -d -c bar`, so matching the path with `pkill -f` is a
-# silent no-op that leaves the old bar drawing over Shibumi. Ask Quickshell
-# instead, and kill by pid so the stock omarchy-shell instance (config path
-# /usr/share/omarchy/shell/shell.qml) is never caught.
-if command -v qs >/dev/null 2>&1; then
-  for pid in $(qs list --all 2>/dev/null | awk -v dir="$HOME/.config/quickshell/bar/" '
-        /^[[:space:]]*Process ID:/  { pid = $3 }
-        /^[[:space:]]*Config path:/ { if (index($3, dir) == 1) print pid }'); do
-    qs kill --pid "$pid" >/dev/null 2>&1 || kill "$pid" 2>/dev/null || true
-  done
+# ── Startup IPC fix ──────────────────────────────────────────────────────────
+# Current Omarchy split the shell's `rescanPlugins` IPC (registry only) from
+# `reloadPlugins` (rebuilds the bar). Shibumi (through v0.2.1) still calls
+# rescanPlugins at startup and waits for a bar that never comes: no bar, no
+# error, just `"phase":"timed-out"` in the journal. Point it at reloadPlugins
+# when the shell has it. Every suite install/update restores the stock file,
+# so this runs each time.
+RUNTIME_QML="$PLUGINS_DIR/hancore.shibumi.state/runtime/Runtime.qml"
+if grep -q 'function reloadPlugins' /usr/share/omarchy/shell/shell.qml 2>/dev/null &&
+  grep -q '"shell", "rescanPlugins"' "$RUNTIME_QML" 2>/dev/null; then
+  sed -i 's/"shell", "rescanPlugins"/"shell", "reloadPlugins"/' "$RUNTIME_QML"
+  note "patched Shibumi's startup call to reloadPlugins"
 fi
 
-# 2. Remove the Omarchy hooks that relaunch/refresh Rise on boot and theme-set.
-rm -f "$HOME/.config/omarchy/hooks/post-boot.d/quickshell-rise"
-rm -f "$HOME/.config/omarchy/hooks/theme-set.d/50-quickshell-bar.sh"
-
-# 3. Remove Rise's config, helper binaries, systemd unit files, and state.
-rm -rf "$HOME/.config/quickshell/bar" "$HOME/.config/quickshell/bin"
-rm -f  "$HOME/.config/systemd/user/qs-shell-update-check.service" \
-       "$HOME/.config/systemd/user/qs-shell-update-check.timer"
-rm -rf "$HOME/.local/state/quickshell-rise"
-systemctl --user daemon-reload 2>/dev/null || true
-# NOTE: the *-usage.service units (claude/codex/opencode) are left alone -- they
-# are generic usage collectors that feed a Quickshell quota widget, and
-# Shibumi's hancore.shibumi.ai plugin consumes the same data.
-
 # ── Show Shibumi on the stock bar ────────────────────────────────────────────
-# Rise had hidden the stock omarchy bar so its own bar could own the slot.
-# Shibumi renders *through* that stock bar, so show it and reload the shell to
-# pick up the freshly staged plugins. Guarded on an active Hyprland session; the
-# toggle/reload are no-ops otherwise.
-if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
-  # Omarchy's bin dir is not guaranteed on PATH in a non-interactive run; if the
-  # omarchy-* commands aren't found the steps below would silently no-op and the
-  # bar would stay hidden. Put it on PATH first.
-  for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
-    [ -d "$d" ] && PATH="$d:$PATH"
-  done
-  export PATH
+# Shibumi renders *through* the stock bar, so make sure it is shown, and reload
+# the shell to pick up the freshly staged plugins.
+if in_session; then
   # INVERTED FLAG: omarchy tracks bar visibility as a `bar-off` toggle, so
   # `omarchy-toggle-bar off` SHOWS the bar (clears bar-off) and `on` hides it.
   omarchy-toggle-bar off >/dev/null 2>&1 || omarchy toggle bar off >/dev/null 2>&1 || true
@@ -271,4 +185,4 @@ if ! printf '%s\n' "$status" | grep -q "^Install state: .*($latest_rev)"; then
   exit 1
 fi
 
-echo "Shibumi Shell $latest_tag installed. Re-run this script to update to the latest release."
+echo "Shibumi Shell $latest_tag installed. Run ./setup shibumi to update to the latest release."

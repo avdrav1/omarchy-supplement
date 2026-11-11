@@ -124,14 +124,14 @@ run bash modules/50-services.sh
 run bash modules/60-theme.sh
 # After the theme so Shibumi picks up the Rebirth colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
-run ./install-shibumi.sh
+run bash modules/70-shibumi.sh
 # After Shibumi: it branches on which bar is installed, and rewrites the group
 # layout Shibumi's installer has just laid down.
-run ./install-sync-calendar.sh
+run bash modules/71-calendar.sh
 # After Shibumi and the calendar clock: it appends its bar widget to the same
 # shell.json group layout those two lay down, and reads the run's length to find
 # a free slot -- so it has to see the final arrangement, not an intermediate one.
-run ./install-blueferry.sh
+run bash modules/72-blueferry.sh
 # After everything that lays out bar groups (Shibumi, calendar clock, BlueFerry):
 # the remaining third-party widgets only get placed when not already on the bar,
 # and Shibumi's reconciler then fills whatever v2Layout slots are still free --

@@ -1,6 +1,6 @@
 #!/bin/bash
-
-set -euo pipefail
+# BlueFerry: iPhone SMS/RCS/iMessage over Bluetooth, with its bar widget
+source "$(dirname "$0")/../lib/common.sh"
 
 # Install BlueFerry -- an iPhone's SMS, RCS and iMessage on the Linux desktop
 # over Bluetooth, with no Mac relay, Apple login, or cloud service.
@@ -22,7 +22,7 @@ set -euo pipefail
 # GitHub API reports a `digest` per asset, and that is verified after download
 # (fatal on mismatch). That catches a corrupted or truncated transfer, not a
 # compromised release -- for a trust root you control, build from the git
-# checkout instead:  BLUEFERRY_FROM_SOURCE=1 ./install-blueferry.sh
+# checkout instead:  BLUEFERRY_FROM_SOURCE=1 ./setup blueferry
 #
 # Overridable per machine:
 #   BLUEFERRY_CLIENTS="gtk quickshell"  which client packages to install
@@ -39,24 +39,16 @@ set -euo pipefail
 # behaviour, not something this script adds; it is only noted here because a
 # provision run is exactly when you won't be expecting it.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="erikwb/blueferry"
+GH_REPO="erikwb/blueferry"
 SRC_DIR="$HOME/.local/share/blueferry-src"
 PLUGIN_REPO_URL="https://github.com/erikwb/omarchy-blueferry.git"
 PLUGIN_ID="io.weirdware.blueferry"
 PLUGIN_DIR="$HOME/.config/omarchy/plugins/$PLUGIN_ID"
-SHELL_JSON="$HOME/.config/omarchy/shell.json"
 CONFIG_DIR="$HOME/.config/blueferry"
 LOCAL_ENV="$CONFIG_DIR/local.env"
-LOCAL_ENV_TEMPLATE="$SCRIPT_DIR/blueferry/local.env"
+LOCAL_ENV_TEMPLATE="$CONFIG/blueferry/local.env"
 MIN_BLUEZ="5.86"
 
-# Omarchy's bin dir is not guaranteed on PATH in a non-interactive run; without
-# it the plugin/shell calls at the end would silently do nothing.
-for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
-  [ -d "$d" ] && PATH="$d:$PATH"
-done
-export PATH
 
 read -r -a CLIENTS <<<"${BLUEFERRY_CLIENTS:-gtk quickshell}"
 PACKAGES=(blueferry-backend)
@@ -99,7 +91,7 @@ if [ "${BLUEFERRY_FROM_SOURCE:-0}" != 0 ]; then
   if [ -d "$SRC_DIR/.git" ]; then
     git -C "$SRC_DIR" pull --ff-only
   else
-    git clone "https://github.com/$REPO.git" "$SRC_DIR"
+    git clone "https://github.com/$GH_REPO.git" "$SRC_DIR"
   fi
   (cd "$SRC_DIR" && ./build.sh -si)
 else
@@ -110,7 +102,7 @@ else
 
   have_release=1
   if ! curl -fsSL --retry 2 -o "$tmpdir/release.json" \
-    "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null; then
+    "https://api.github.com/repos/$GH_REPO/releases/latest" 2>/dev/null; then
     have_release=0
     if [ -n "$(pkg_version blueferry-backend)" ]; then
       echo "install-blueferry: cannot reach the GitHub API; keeping the installed version." >&2
