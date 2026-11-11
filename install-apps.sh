@@ -96,8 +96,6 @@ script_app() {
 }
 
 script_app zed https://zed.dev/install.sh
-script_app herdr https://herdr.dev/install.sh               # terminal multiplexer
-script_app omp https://omp.sh/install                       # oh-my-pi coding agent
 script_app tidemail https://raw.githubusercontent.com/allisonhere/tidemail/main/install.sh
 script_app llmfit https://llmfit.axjns.dev/install.sh --local # --local: no sudo prompt
 script_app gutenberg https://gutenbergapp.com/install.sh   # news reader
@@ -127,11 +125,6 @@ EOF
   echo "Added the Gutenberg launcher entry."
 fi
 
-# Kimi Code CLI: a wrapper that runs the npm package through mise.
-if [ ! -x "$HOME/.local/bin/kimi" ]; then
-  install -Dm755 "$SCRIPT_DIR/bin/kimi" "$HOME/.local/bin/kimi"
-  echo "Installed the kimi wrapper."
-fi
 
 # Omarchy iCloud Photos (recent iCloud photos in a launcher, plus a sync timer).
 # The checkout sits under ~/Documents, as on the reference machine, so a machine

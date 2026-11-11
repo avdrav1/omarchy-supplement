@@ -117,13 +117,11 @@ run() {
 run ./install-zsh.sh
 run ./install-ghostty.sh
 run ./install-github-desktop.sh
-run ./install-claude-code.sh
 run ./install-claude-desktop.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
 run ./install-vivaldi.sh
 run ./install-vscode.sh
-run ./install-obsidian.sh
 run ./install-slack.sh
 # Apps + web apps the reference machine has that no dedicated installer covers.
 # Needs yay (Omarchy base) and omarchy-webapp-install; no other ordering needs.
@@ -192,16 +190,11 @@ cat <<'EOF'
    - Open terminals/aerc pick up the new $EDITOR (fresh).
 
 2. Display scale (per machine):
-   - Omarchy quattro (Lua config, ~/.config/hypr/hyprland.lua present):
-       Edit hypr/lua/hosts/<hostname>.lua and set scale (1.5 HiDPI, 1 native),
-       then re-run ./install-hyprland-overrides.sh and hyprctl reload.
-       The re-run is REQUIRED: it regenerates ~/.config/hypr/monitors.lua, which
-       omarchy-hyprland-monitor-clamshell greps every 2s to reapply the scale.
-       Wait ~5s before checking hyprctl monitors -- that poll can return a
-       stale value immediately after a reload.
-   - Legacy (.conf config):
-       Edit hosts/<hostname>.conf, set $MONSCALE, then hyprctl reload.
-   - Either way, commit the host file.
+   Edit hypr/lua/hosts/<hostname>.lua and set scale (1.5 HiDPI, 1 native),
+   then re-run ./install-hyprland-overrides.sh and hyprctl reload, and commit
+   the host file. The re-run is REQUIRED: it regenerates
+   ~/.config/hypr/monitors.lua, which omarchy-hyprland-monitor-clamshell greps
+   every 2s to reapply the scale. Wait ~5s before checking hyprctl monitors.
 
 3. Sign in to apps (no automated auth):
    - Claude Code CLI:  run `claude` and authenticate.

@@ -51,10 +51,3 @@ else
   install_plugin zsh-autocomplete         https://github.com/marlonrichert/zsh-autocomplete.git
 fi
 
-# Install Starship prompt
-if ! command -v starship &>/dev/null; then
-  echo "Installing Starship..."
-  yay -S --noconfirm --needed starship
-fi
-
-echo "Starship installed (config will be stowed from dotfiles)"

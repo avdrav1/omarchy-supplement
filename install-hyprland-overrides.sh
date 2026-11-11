@@ -5,16 +5,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HYPR_DIR="$HOME/.config/hypr"
 
-# Omarchy migrated Hyprland config from hyprlang (.conf) to Lua. Both trees are
-# kept in this repo so a fleet can be mid-migration:
-#
-#   Lua      hypr/lua/*.lua          + hypr/lua/hosts/<hostname>.lua
-#   hyprlang hyprland-overrides.conf + hosts/<hostname>.conf
-#
-# A machine is on Lua when ~/.config/hypr/hyprland.lua exists -- Hyprland
-# prefers it over hyprland.conf. Install into whichever the machine uses.
-# When changing a machine's scale, update BOTH host files until every machine
-# has migrated.
+# Overrides live in hypr/lua/*.lua, per-machine scale in hypr/lua/hosts/<hostname>.lua.
 
 install_lua() {
     local ENTRY="$HYPR_DIR/hyprland.lua"
@@ -103,45 +94,9 @@ EOF
     echo "Rendered $TARGET (scale $SCALE, GDK_SCALE $GDK_SCALE)"
 }
 
-install_conf() {
-    local ENTRY="$HYPR_DIR/hyprland.conf"
-    local OVERRIDES_CONFIG="$SCRIPT_DIR/hyprland-overrides.conf"
-    local SOURCE_LINE="source = $OVERRIDES_CONFIG"
-
-    if [ ! -f "$OVERRIDES_CONFIG" ]; then
-        echo "Overrides config not found at $OVERRIDES_CONFIG"
-        exit 1
-    fi
-
-    if grep -Fxq "$SOURCE_LINE" "$ENTRY"; then
-        echo "Source line already exists in $ENTRY"
-    else
-        echo "Adding source line to $ENTRY"
-        echo "" >>"$ENTRY"
-        echo "$SOURCE_LINE" >>"$ENTRY"
-        echo "Source line added successfully"
-    fi
-
-    # Select the per-machine monitor/scale file by hostname and symlink it to the
-    # path sourced by hyprland-overrides.conf. Per-host files live in hosts/ and
-    # are tracked in git; a new machine is seeded from hosts/default.conf.
-    local LOCAL_MONITORS HOST HOSTFILE
-    LOCAL_MONITORS="$HYPR_DIR/monitors.local.conf"
-    HOST="$(hostname)"
-    HOSTFILE="$SCRIPT_DIR/hosts/$HOST.conf"
-    if [ ! -f "$HOSTFILE" ]; then
-        echo "Creating hosts/$HOST.conf from default (set MONSCALE and commit it)"
-        cp "$SCRIPT_DIR/hosts/default.conf" "$HOSTFILE"
-    fi
-    ln -sf "$HOSTFILE" "$LOCAL_MONITORS"
-}
-
 if [ -f "$HYPR_DIR/hyprland.lua" ]; then
     echo "Detected Lua Hyprland config."
     install_lua
-elif [ -f "$HYPR_DIR/hyprland.conf" ]; then
-    echo "Detected hyprlang (.conf) Hyprland config."
-    install_conf
 else
     echo "Hyprland config not found in $HYPR_DIR"
     echo "Please install hyprland first"

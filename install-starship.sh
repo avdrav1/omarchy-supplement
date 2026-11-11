@@ -16,10 +16,8 @@
 
 set -u
 
-if ! command -v starship &>/dev/null; then
-  echo "Installing Starship..."
-  yay -S --noconfirm --needed starship || exit 1
-fi
+# starship itself ships with Omarchy; this script only writes the preset.
+command -v starship &>/dev/null || { echo "starship not found (Omarchy installs it)" >&2; exit 1; }
 
 CONFIG="$HOME/.config/starship.toml"
 mkdir -p "$(dirname "$CONFIG")"
