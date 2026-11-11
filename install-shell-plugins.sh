@@ -18,8 +18,7 @@ set -euo pipefail
 # `altscape-binds sync` writes at the end of ~/.config/hypr/hyprland.lua.
 #
 # Settings are seeded from plugin-config/ only when the machine has none, and
-# then belong to the plugin: like Strata (see install-strata.sh), each one
-# replaces its file on save, so a stowed symlink would be silently turned back
+# then belong to the plugin: each one replaces its file on save, so a stowed symlink would be silently turned back
 # into a plain file -- and omadock refuses to read a non-regular file at all.
 #
 # Opt out per plugin with a space-separated list of ids:

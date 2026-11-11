@@ -14,8 +14,8 @@ set -euo pipefail
 #
 # NOT IN THE AUR. Upstream ships split pacman packages on GitHub Releases, so
 # this installer resolves the latest tag from the API and `pacman -U`s the
-# .pkg.tar.zst assets it names. Unlike install-strata.sh there is no version
-# stamp to keep: these are real packages, so `pacman -Q` is the source of truth
+# .pkg.tar.zst assets it names. There is no version stamp to keep: these are
+# real packages, so `pacman -Q` is the source of truth
 # for what is installed and pacman owns upgrade/removal bookkeeping.
 #
 # Integrity: the release carries no signatures and no checksum file, but the

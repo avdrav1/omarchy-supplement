@@ -27,7 +27,7 @@ setup is needed. The modules are:
 - `init.lua` — entry point, requires the rest
 - `monitors.lua` — resolves the per-host scale by hostname
 - `input.lua` — keyboard, touchpad, cursor, DPMS
-- `bindings.lua` — terminal/browser/web-app binds, vim-style focus, Strata binds
+- `bindings.lua` — terminal/browser/web-app binds, vim-style focus
 - `scrolloverview.lua` — hyprpm plugin config, binds, and submap (no-ops when the
   plugin isn't built)
 - `quickswitch.lua` — **required last**: loads the QuickSwitch plugin's own

@@ -133,11 +133,6 @@ run ./install-slack.sh
 # Apps + web apps the reference machine has that no dedicated installer covers.
 # Needs yay (Omarchy base) and omarchy-webapp-install; no other ordering needs.
 run ./install-apps.sh
-# Installed from a GitHub release rather than the AUR, so it only needs curl and
-# the pacman deps -- no ordering constraint against the runtimes above. Kept
-# before install-hyprland-overrides.sh purely so the binary exists by the time
-# that installer lands the SUPER+SHIFT+F binds pointing at it.
-run ./install-strata.sh
 
 run ./install-stow.sh
 run ./install-dotfiles.sh
