@@ -9,3 +9,5 @@ zed         editor zed          # Zed + omazed theme sync
 slack       service slack       # Slack with live Omarchy theme
 1password   service 1password   # 1Password + CLI + browser extension
 steam       gaming steam        # lib32 GPU drivers first, then Steam
+spotify     service spotify     # the app on x86, the web player on ARM
+herdr-app   ai herdr            # Herdr desktop app (updates itself) + Omarchy keys and theme

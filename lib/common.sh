@@ -51,11 +51,13 @@ pkg() {
 }
 
 # Run an Omarchy installer (`omarchy install <args>`) unless <cmd> already
-# exists. Omarchy's installers usually open the app when they finish.
+# exists as a command or as a launcher (some installers make a web app instead,
+# e.g. Spotify on ARM). Omarchy's installers usually open the app when they finish.
 omarchy_install() {
   local cmd="$1"
   shift
-  command -v "$cmd" &>/dev/null && return 0
+  command -v "$cmd" &>/dev/null || [ -x "$HOME/.local/bin/$cmd" ] && return 0
+  [ -n "$(find "$HOME/.local/share/applications" -maxdepth 1 -iname "$cmd.desktop" 2>/dev/null)" ] && return 0
   note "omarchy install $*"
   omarchy install "$@"
 }

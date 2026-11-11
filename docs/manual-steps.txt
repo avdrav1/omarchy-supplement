@@ -17,8 +17,8 @@
 4. Syncthing:  open http://127.0.0.1:8384 to add folders and pair devices.
 
 5. Sign in to apps on first launch: Claude Desktop (and `claude` in a
-   terminal), GitHub Desktop, Slack, 1Password, Vesktop, Codex, Perplexity,
-   Steam, Zed. Vivaldi: optional Vivaldi Sync; re-add Mail/Calendar accounts.
+   terminal), GitHub Desktop, Slack, 1Password, Spotify, Vesktop, Codex,
+   Perplexity, Steam, Zed. Vivaldi: optional Vivaldi Sync; re-add Mail/Calendar accounts.
 
 6. Gmail / aerc (OAuth2, once per machine):
    - Google Cloud Console: new project -> enable Gmail API -> OAuth consent
