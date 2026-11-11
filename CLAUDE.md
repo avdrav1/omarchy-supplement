@@ -1,93 +1,60 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repo. Read `README.md` first for
+the layout.
 
 ## What this repo is
 
-Shell scripts and config that supplement an [Omarchy](https://omarchy.org/)
-(Arch Linux + Hyprland) environment. There is **no application, build, or test
-pipeline** — the units of work are the `install-*.sh` scripts themselves. To
-"test" a change, run the affected installer on a real machine/container and
-verify its side effects (`command -v <tool>`, `psql` connectivity,
-`hyprctl reload`, etc.).
+Bash modules and config that provision a fresh Omarchy (Arch + Hyprland, Lua
+config) machine. There is no build or test suite: to test a change, run the
+module (`./setup <name>`, or `bash modules/NN-name.sh` when no sudo is needed)
+and check its side effects. Every other machine is set up from a **fresh**
+Omarchy install, so don't add code that migrates old setups.
 
-`WARP.md` holds the full per-script reference and architecture; `README.md`
-documents the per-machine display-scaling workflow. Read those before deep work
-in their respective areas.
+The alienware host is the reference machine. Something set up there by hand (an
+app, widget, bind, theme) only reaches other machines once it's added here.
 
-## Commands
+## Conventions
 
-- `./install-all.sh` — provision a full machine. It `cd`s to its own dir first,
-  then runs the individual installers in dependency order (shell/tooling →
-  runtimes/db → apps → stow/dotfiles/hyprland overrides → set-shell → theme).
-  It first `git pull --ff-only`s this repo and re-execs itself if HEAD moved
-  (`install-dotfiles.sh` pulls `~/dotfiles` the same way), so **uncommitted or
-  unpushed changes never reach another machine** — commit and push. Set
-  `SUPPLEMENT_NO_PULL=1` to test local changes without pulling.
-- The alienware host is the **reference machine**: laptops should end up
-  looking like it. When something is set up there by hand (a widget, app,
-  theme, bind), give it an installer here or it will not reach the fleet.
-- `./install-<concern>.sh` — run a single installer. Each targets one concern
-  and is written to be re-runnable (guards with `command -v`, `pacman -Qi`,
-  presence checks before acting).
+- **Lists over scripts.** A new app or widget is a line in `manifest/`; a new
+  module is only for something that needs real logic.
+- **Don't duplicate Omarchy.** Check `/usr/share/omarchy/install/*.packages`,
+  `/etc/mise/conf.d/omarchy-tools.toml` and `omarchy install --help` before
+  adding anything. Prefer `omarchy install ...` (manifest/omarchy.txt) over a
+  bare package when Omarchy has an installer.
+- **Modules** start with `#!/bin/bash`, a one-line description on line 2 (shown
+  by `./setup --list`), then `source "$(dirname "$0")/../lib/common.sh"`. That
+  gives `set -euo pipefail`, Omarchy's bin dir on PATH, `$REPO $CONFIG $ASSETS
+  $MANIFEST $SHELL_JSON $PLUGINS_DIR`, and the helpers. Don't reuse those names.
+- **Idempotent and quiet when done:** check before acting, and never reach for
+  sudo when nothing is missing (`pkg` filters installed packages first; `put`
+  skips identical files).
+- **Settings an app rewrites on save** (it replaces the file, or refuses a
+  symlink) are copied once with `seed`, never stowed.
+- **Never edit `/usr/share/omarchy/`**; it's owned by the omarchy package.
 
-## Conventions to follow
+## Hyprland (Lua)
 
-- **Arch-only assumptions:** scripts rely on `yay`/`pacman` and `systemctl`.
-  Omarchy commands (e.g. `omarchy-launch-webapp`) are assumed present from the
-  broader Omarchy install and are not defined here.
-- **Adding an installer:** make it independently runnable first, then insert it
-  into `install-all.sh` at a position that satisfies its dependencies (after the
-  package manager / runtime it needs).
-- **Hyprland changes go in this repo**, not the main Hyprland config, making it
-  the single source of truth for Omarchy overrides. Omarchy migrated Hyprland
-  config from hyprlang (`.conf`) to **Lua**, so two parallel trees exist while
-  the fleet is mid-migration:
+`modules/40-hyprland.sh` links `~/.config/supplement` -> `config/hypr` and
+appends a `dofile` of `init.lua` to `~/.config/hypr/hyprland.lua`, so these
+overrides load last. The `hl` and `o` globals are in scope; references are
+`/usr/share/hypr/stubs/hl.meta.lua` and `/usr/share/omarchy/default/hypr/helpers.lua`.
+Traps, all silent:
 
-  | Parser | Overrides | Per-host scale | Entry point |
-  |---|---|---|---|
-  | Lua (current) | `hypr/lua/*.lua` | `hypr/lua/hosts/<hostname>.lua` | `require("supplement.init")` in `~/.config/hypr/hyprland.lua` |
-  | hyprlang (legacy) | `hyprland-overrides.conf` | `hosts/<hostname>.conf` | `source = …` in `~/.config/hypr/hyprland.conf` |
+- `hl.bind`/`o.bind` *add* a bind; reusing a key needs `hl.unbind` first.
+- `hyprctl keyword` and `hyprctl dispatch <legacy-name>` don't work: `hyprctl
+  dispatch` evaluates Lua (`hyprctl dispatch 'hl.dsp.exec_cmd("…")'`), and
+  plugins are only reachable as `hl.plugin.<ns>.*`.
+- `require()` caches and Hyprland only clears its own prefixes on reload, so
+  `init.lua` clears `supplement.*` itself and is reached with `dofile`.
+- Display scale must NOT be set with `hl.monitor`: Omarchy's monitor-watch
+  daemon re-applies it every 2s from `~/.config/hypr/monitors.lua`, which the
+  module generates from `config/hypr/hosts/<hostname>.lua`.
 
-  `install-hyprland-overrides.sh` detects which the machine uses (Lua when
-  `~/.config/hypr/hyprland.lua` exists) and installs only that one. For Lua it
-  symlinks `~/.config/supplement` → `hypr/lua/` — Hyprland's `package.path`
-  already covers `~/.config/?.lua`. Either way the overrides load **last**, so
-  they beat omarchy-managed config like `monitors.lua`/`monitors.conf`.
-  **Changes must be made in both trees** until every machine has migrated.
-- **Writing Lua config:** the `hl` (Hyprland) and `o` (Omarchy helpers) globals
-  are already in scope. Authoritative API reference is the shipped stub
-  `/usr/share/hypr/stubs/hl.meta.lua`; Omarchy's helpers are in
-  `/usr/share/omarchy/default/hypr/helpers.lua` (`o.bind`, `o.window`,
-  `o.exec_on_start`, …). Traps, all of which fail *silently*:
-  - `hl.bind` *adds* a bind rather than replacing one, so reusing an Omarchy
-    default key needs `hl.unbind` first.
-  - `hyprctl keyword` and `hyprctl dispatch <legacy-name>` **do not work at
-    all** — `hyprctl dispatch` evaluates Lua, so use
-    `hyprctl dispatch 'hl.dsp.exec_cmd("…")'`. This also means plugins are
-    reachable only via their Lua namespace (`hl.plugin.<ns>.*`), never their
-    `plugin:dispatcher` names.
-  - `require()` caches, and Hyprland's `bootstrap.lua` clears `package.loaded`
-    only for its own prefixes (`default.hypr`, `hypr`, `omarchy.current.theme`).
-    A `supplement.*` module would therefore load once and never re-run on
-    reload. `hyprland.lua` reaches `init.lua` via `dofile` (always re-executes)
-    and `init.lua` clears the `supplement.` cache itself.
-- **Display scale is per-machine, never hardcoded in shared config.** Each
-  machine's scale lives in a tracked host file (`hypr/lua/hosts/<hostname>.lua`
-  returning `{ scale, gdk_scale }`, or legacy `hosts/<hostname>.conf` defining
-  `$MONSCALE`). To change a machine's scale, edit its host file, re-run
-  `./install-hyprland-overrides.sh`, `hyprctl reload`, and commit.
-- **Scale is the one setting the supplement does NOT own via `hl.monitor`.**
-  Omarchy's `omarchy-hyprland-monitor-watch` daemon polls every 2 seconds and
-  force-reapplies the internal display's scale, parsing it out of
-  `~/.config/hypr/monitors.lua` with
-  `sed -n 's/^local omarchy_monitor_scale = //p'` and falling back to a
-  **hardcoded 2** when that isn't a bare number — which the stock `= "auto"`
-  triggers. Any `hl.monitor` rule set elsewhere is reverted within seconds, so
-  `install-hyprland-overrides.sh` *generates* `~/.config/hypr/monitors.lua` from
-  the host file instead, preserving that exact line format. When debugging
-  scale, check that file and the daemon before the Lua modules. Allow ~5s after
-  a reload before reading `hyprctl monitors` — the poll can return a stale value.
-- **Dotfiles** come from the external `avdrav1/dotfiles` repo via GNU Stow
-  (`install-dotfiles.sh`). It `rm -rf`s a fixed set of existing configs before
-  stowing — keep that removal list in sync with the stow targets.
+## Shibumi
+
+Installed from the source checkout at `~/.local/share/Shibumi-Shell` (latest
+release tag, never `main`) via its `scripts/shibumi-suite`. Each install/update
+restores a stock `Runtime.qml`, so `modules/70-shibumi.sh` re-applies the
+`rescanPlugins` -> `reloadPlugins` startup fix every run; without it current
+Omarchy shows no bar.
