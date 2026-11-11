@@ -121,7 +121,7 @@ run bash modules/30-dotfiles.sh
 run bash modules/40-hyprland.sh
 run bash modules/50-services.sh
 
-run ./install-theme.sh
+run bash modules/60-theme.sh
 # After the theme so Shibumi picks up the Rebirth colors. install-shibumi.sh also
 # retires the old Quickshell Rise bar this repo used to install.
 run ./install-shibumi.sh
