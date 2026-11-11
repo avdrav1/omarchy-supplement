@@ -64,6 +64,9 @@ for app in dev.cronkite.Slate dev.cronkite.Brick dev.cronkite.Frame; do
     [ "$(xdg-mime query default "$mime")" = "$app.desktop" ] || xdg-mime default "$app.desktop" "$mime"
   done
 done
+# Legacy .xls would otherwise fall to whatever else claims it (ChatGPT, here).
+[ "$(xdg-mime query default application/vnd.ms-excel)" = libreoffice-calc.desktop ] ||
+  xdg-mime default libreoffice-calc.desktop application/vnd.ms-excel
 
 # Omarchy iCloud Photos: recent iCloud photos in a launcher, plus a sync timer.
 # Cloned under ~/Documents (which Syncthing may already have delivered); its
