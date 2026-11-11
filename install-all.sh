@@ -141,12 +141,11 @@ run bash modules/80-bar-widgets.sh
 # *service* plugin, so it only needs shell.json's `plugins` array and never
 # touches the bar layout -- but it still wants to land before the final shell
 # restart below. Its Hyprland binds come from install-hyprland-overrides.sh.
-run ./install-quickswitch.sh
 # Overlay/service plugins (OmaDock, Spotlight, Altscape): same reasons as
 # QuickSwitch -- shell.json `plugins` only, no bar layout. After
 # install-hyprland-overrides.sh, whose hypr/lua/apps.lua holds their binds, and
 # Altscape's helper appends its ALT+TAB block after that tree.
-run ./install-shell-plugins.sh
+run bash modules/81-shell-plugins.sh
 # LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
 # Shibumi's installer rewrites, so it has to run after that settles -- and its
 # shell restart should be the final one of the provision.
