@@ -90,7 +90,7 @@ if [ "${BLUEFERRY_FROM_SOURCE:-0}" != 0 ]; then
   # this path is minutes not seconds and pulls in every checkdepend.
   #
   # It also forces /usr/bin/python explicitly, which matters here: this fleet
-  # installs mise (install-mise.sh), whose shim python would otherwise decide
+  # has mise (Omarchy ships it), whose shim python would otherwise decide
   # the site-packages directory the package installs into -- producing a
   # package for an interpreter that isn't the one running the daemon.
   # Guarded so a re-run on a provisioned machine never reaches for sudo (and

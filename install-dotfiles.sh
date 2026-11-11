@@ -36,7 +36,6 @@ if [ $? -eq 0 ]; then
   cd "$REPO_NAME"
   stow zshrc
   stow ghostty
-  stow tmux
   stow nvim
   # starship is deliberately NOT stowed: ~/.config/starship.toml is owned by
   # install-starship.sh, which generates the upstream pastel-powerline preset.

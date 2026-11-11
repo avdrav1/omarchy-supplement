@@ -8,7 +8,7 @@ Shell scripts and config that supplement an [Omarchy](https://omarchy.org/)
 (Arch Linux + Hyprland) environment. There is **no application, build, or test
 pipeline** — the units of work are the `install-*.sh` scripts themselves. To
 "test" a change, run the affected installer on a real machine/container and
-verify its side effects (`command -v <tool>`, `asdf list`, `psql` connectivity,
+verify its side effects (`command -v <tool>`, `psql` connectivity,
 `hyprctl reload`, etc.).
 
 `WARP.md` holds the full per-script reference and architecture; `README.md`
@@ -29,7 +29,7 @@ in their respective areas.
   theme, bind), give it an installer here or it will not reach the fleet.
 - `./install-<concern>.sh` — run a single installer. Each targets one concern
   and is written to be re-runnable (guards with `command -v`, `pacman -Qi`,
-  `asdf plugin list`, presence checks before acting).
+  presence checks before acting).
 
 ## Conventions to follow
 

@@ -115,12 +115,7 @@ run() {
 
 # Install all packages in order
 run ./install-zsh.sh
-run ./install-mise.sh
-run ./install-asdf.sh
-run ./install-nodejs.sh
-run ./install-ruby.sh
 run ./install-ghostty.sh
-run ./install-tmux.sh
 run ./install-github-desktop.sh
 run ./install-claude-code.sh
 run ./install-claude-desktop.sh
@@ -194,7 +189,7 @@ cat <<'EOF'
    - Shibumi Shell runs inside the stock omarchy-shell (installed as Omarchy
      plugins), so no separate autostart is needed. install-shibumi.sh turns the
      stock bar back on and restarts the shell; a fresh login also picks it up.
-   - Open terminals/aerc pick up the new $EDITOR (fresh) and mise on PATH.
+   - Open terminals/aerc pick up the new $EDITOR (fresh).
 
 2. Display scale (per machine):
    - Omarchy quattro (Lua config, ~/.config/hypr/hyprland.lua present):
