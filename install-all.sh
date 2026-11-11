@@ -149,7 +149,7 @@ run bash modules/81-shell-plugins.sh
 # LAST: it clones+patches the omarchy.menu plugin and edits the same shell.json
 # Shibumi's installer rewrites, so it has to run after that settles -- and its
 # shell restart should be the final one of the provision.
-run ./install-omarchy-menu-websearch.sh
+run bash modules/90-menu-websearch.sh
 
 # ── Manual steps ─────────────────────────────────────────────────────────────
 # Everything above is automated; the items below need a human (interactive

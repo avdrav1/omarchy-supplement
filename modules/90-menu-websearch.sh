@@ -1,6 +1,6 @@
 #!/bin/bash
-
-set -euo pipefail
+# Omarchy menu (SUPER+SPACE) falls back to a web search when nothing matches
+source "$(dirname "$0")/../lib/common.sh"
 
 # Make the Omarchy menu (SUPER+SPACE) fall back to a web search when a query
 # matches no menu row and no installed app, instead of showing its dead
@@ -34,7 +34,6 @@ CLONE_SOURCE_ID="omarchy.menu"
 STOCK_DIR="/usr/share/omarchy/shell/plugins/menu"
 CLONE_ID="${USER:-$(id -un)}.menu"
 CLONE_DIR="$HOME/.config/omarchy/plugins/$CLONE_ID"
-SHELL_JSON="$HOME/.config/omarchy/shell.json"
 
 # Swap the search engine per machine without editing this script, e.g.
 #   OMARCHY_MENU_SEARCH_URL='https://duckduckgo.com/?q=' \
@@ -46,7 +45,7 @@ UNINSTALL=0
 case "${1:-}" in
   --uninstall) UNINSTALL=1 ;;
   -h | --help)
-    echo "Usage: ./install-omarchy-menu-websearch.sh [--uninstall]"
+    echo "Usage: modules/90-menu-websearch.sh [--uninstall]"
     echo
     echo "  Clones the Omarchy menu plugin and patches it to offer a web search"
     echo "  when a query matches nothing. --uninstall removes the clone and"
@@ -62,11 +61,6 @@ esac
 
 # Omarchy's bin dir is not guaranteed on PATH in a non-interactive run; without
 # it the omarchy-* calls below silently no-op and the shell never restarts.
-for d in "$HOME/.local/share/omarchy/bin" /usr/share/omarchy/bin; do
-  [ -d "$d" ] && PATH="$d:$PATH"
-done
-export PATH
-
 for cmd in jq python3; do
   command -v "$cmd" >/dev/null 2>&1 || {
     echo "ERROR: $cmd is required." >&2
@@ -349,5 +343,5 @@ $SEARCH_LABEL "<your query>". Enter opens it in your default browser.
 
 Re-run this script after 'omarchy update' to re-clone the refreshed menu and
 re-apply the patch. Revert with:
-  ./install-omarchy-menu-websearch.sh --uninstall
+  modules/90-menu-websearch.sh --uninstall
 EOF
