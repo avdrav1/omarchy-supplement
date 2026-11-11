@@ -119,7 +119,7 @@ run bash modules/20-shell.sh
 run ./install-syncthing.sh
 run ./install-tailscale.sh
 
-run ./install-dotfiles.sh
+run bash modules/30-dotfiles.sh
 run ./install-hyprland-overrides.sh
 # After hyprland-overrides so the plugin{} block and binds are already sourced
 # when hyprpm loads the plugin.
