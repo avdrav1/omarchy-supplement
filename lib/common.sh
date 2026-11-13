@@ -37,17 +37,45 @@ has_pkg() { pacman -Qq "$1" &>/dev/null; }
 
 # Install repo or AUR packages that are not already installed. Filtering first
 # matters: `yay --needed` still runs sudo pacman even when nothing is missing.
-# Retries because the AUR RPC endpoint intermittently resets connections.
+# Repo packages go straight to pacman so an AUR outage or rate limit (HTTP 429)
+# can't block them: yay fails the whole batch when one AUR lookup fails.
+# AUR: yay, retried because its RPC endpoint intermittently resets connections.
+# When the RPC keeps failing (it rate-limits an IP for hours at a time), each
+# package is built straight from its AUR git repo, which isn't throttled. That
+# path can't resolve AUR-only dependencies, which -bin packages rarely have.
+aur_git_install() {
+  local p="$1" dir
+  dir="$(mktemp -d)"
+  git clone --quiet --depth 1 "https://aur.archlinux.org/$p.git" "$dir/$p" &&
+    [ -f "$dir/$p/PKGBUILD" ] &&
+    (cd "$dir/$p" && makepkg -si --noconfirm --needed)
+  local rc=$?
+  rm -rf "$dir"
+  return "$rc"
+}
+
 pkg() {
-  local missing=() p attempt
-  for p in "$@"; do has_pkg "$p" || missing+=("$p"); done
-  ((${#missing[@]})) || return 0
-  note "installing ${missing[*]}"
-  for attempt in 1 2 3; do
-    yay -S --noconfirm --needed "${missing[@]}" && return 0
-    ((attempt < 3)) && { warn "yay failed (attempt $attempt/3); retrying in 5s"; sleep 5; }
+  local repo=() aur=() p attempt rc=0
+  for p in "$@"; do
+    has_pkg "$p" && continue
+    if pacman -Si "$p" &>/dev/null; then repo+=("$p"); else aur+=("$p"); fi
   done
-  return 1
+  if ((${#repo[@]})); then
+    note "installing ${repo[*]}"
+    sudo pacman -S --noconfirm --needed "${repo[@]}" || rc=1
+  fi
+  ((${#aur[@]})) || return "$rc"
+  note "installing ${aur[*]} (AUR)"
+  for attempt in 1 2; do
+    yay -S --noconfirm --needed "${aur[@]}" && return "$rc"
+    ((attempt < 2)) && { warn "yay failed; retrying in 10s"; sleep 10; }
+  done
+  warn "yay failed; building from AUR git instead"
+  for p in "${aur[@]}"; do
+    has_pkg "$p" && continue
+    aur_git_install "$p" || { warn "could not build $p from AUR git"; rc=1; }
+  done
+  return "$rc"
 }
 
 # Run an Omarchy installer (`omarchy install <args>`) unless <cmd> already
