@@ -4,6 +4,7 @@
 # The installer is skipped when the command already exists. Note that these
 # installers open the app when they finish.
 
+ghostty     terminal ghostty    # Ghostty as the default terminal (SUPER+Return)
 code        editor vscode       # VS Code + libsecret password store + theme
 zed         editor zed          # Zed + omazed theme sync
 slack       service slack       # Slack with live Omarchy theme

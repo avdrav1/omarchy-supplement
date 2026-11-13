@@ -4,7 +4,6 @@
 # fonts...) live in that module instead.
 
 zsh
-ghostty
 stow                    # dotfiles
 fresh-editor-bin        # default editor (see modules/50-services.sh)
 
