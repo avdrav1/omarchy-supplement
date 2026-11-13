@@ -145,6 +145,14 @@ else
   "$SUITE" update --yes || true
 fi
 
+# `update` keeps whichever bar is active, and Shibumi's own bar switcher (or
+# `shibumi-suite deactivate`) can leave the stock omarchy.bar configured.
+# Shibumi is the bar on these machines, so switch back.
+if ! "$SUITE" status 2>/dev/null | grep -q 'Configured bar: hancore.shibumi'; then
+  echo "Stock bar is active; activating Shibumi..."
+  "$SUITE" activate --yes || true
+fi
+
 # ── Show Shibumi on the stock bar ────────────────────────────────────────────
 # Shibumi renders *through* the stock bar, so make sure it is shown, and reload
 # the shell to pick up the freshly staged plugins.
