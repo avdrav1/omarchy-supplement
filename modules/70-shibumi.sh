@@ -145,20 +145,6 @@ else
   "$SUITE" update --yes || true
 fi
 
-# ── Startup IPC fix ──────────────────────────────────────────────────────────
-# Current Omarchy split the shell's `rescanPlugins` IPC (registry only) from
-# `reloadPlugins` (rebuilds the bar). Shibumi (through v0.2.1) still calls
-# rescanPlugins at startup and waits for a bar that never comes: no bar, no
-# error, just `"phase":"timed-out"` in the journal. Point it at reloadPlugins
-# when the shell has it. Every suite install/update restores the stock file,
-# so this runs each time.
-RUNTIME_QML="$PLUGINS_DIR/hancore.shibumi.state/runtime/Runtime.qml"
-if grep -q 'function reloadPlugins' /usr/share/omarchy/shell/shell.qml 2>/dev/null &&
-  grep -q '"shell", "rescanPlugins"' "$RUNTIME_QML" 2>/dev/null; then
-  sed -i 's/"shell", "rescanPlugins"/"shell", "reloadPlugins"/' "$RUNTIME_QML"
-  note "patched Shibumi's startup call to reloadPlugins"
-fi
-
 # ── Show Shibumi on the stock bar ────────────────────────────────────────────
 # Shibumi renders *through* the stock bar, so make sure it is shown, and reload
 # the shell to pick up the freshly staged plugins.

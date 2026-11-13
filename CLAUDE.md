@@ -56,7 +56,7 @@ Traps, all silent:
 ## Shibumi
 
 Installed from the source checkout at `~/.local/share/Shibumi-Shell` (latest
-release tag, never `main`) via its `scripts/shibumi-suite`. Each install/update
-restores a stock `Runtime.qml`, so `modules/70-shibumi.sh` re-applies the
-`rescanPlugins` -> `reloadPlugins` startup fix every run; without it current
-Omarchy shows no bar.
+release tag, never `main`) via its `scripts/shibumi-suite`. Don't patch the
+staged plugin files: since v0.2.3 the suite checks them against the release and
+refuses `status`/`update` on any change (v0.2.3 also ships the `reloadPlugins`
+startup fix we used to patch in).
