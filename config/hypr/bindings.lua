@@ -28,6 +28,15 @@ o.bind("SUPER + RETURN", "Terminal", terminal)
 hl.unbind("SUPER + B")
 o.bind("SUPER + B", "Browser", browser)
 
+-- Strata replaces Folio (modules/45-strata.sh); stock omarchy-launch-files
+-- hardcodes folio, so both file-manager binds are taken over here.
+local strata = os.getenv("HOME") .. "/.local/bin/strata"
+hl.unbind("SUPER + SHIFT + F")
+hl.unbind("SUPER + ALT + SHIFT + F")
+o.bind("SUPER + SHIFT + F", "File manager", { launch = strata })
+o.bind("SUPER + ALT + SHIFT + F", "File manager (cwd)",
+  "uwsm-app -- " .. strata .. " \"$(omarchy-cmd-terminal-cwd)\"")
+
 -- Web apps. SUPER+G is Omarchy's "Toggle window grouping" by default.
 -- Discord is Vesktop where it is installed (focuses the running window, or
 -- raises it from the tray), and the web app everywhere else.

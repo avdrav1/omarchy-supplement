@@ -1,0 +1,17 @@
+# Strata preferences, seeded once into ~/.config/strata/settings.toml by
+# modules/45-strata.sh and owned by the app after that (Settings, Ctrl+,).
+# Not stowed: Strata saves via an atomic write that refuses a symlink, so every
+# change would be silently lost.
+#
+# Only deliberate divergences from upstream defaults; every other field falls
+# back to upstream.
+
+# Follow the active Omarchy theme. Strata only picks this on its own while no
+# settings file exists, so it's set explicitly.
+mode = "omarchy"
+# Palette used if the Omarchy theme state is ever missing (upstream default;
+# required once a settings file exists).
+theme = "azure-glow"
+
+# Dotfiles-managed machine: ~/.config and friends are the working set.
+show_hidden = true

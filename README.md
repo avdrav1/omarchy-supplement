@@ -27,7 +27,7 @@ they're listed at the end. Every module is safe to re-run.
 | `lib/common.sh` | Helpers every module uses (`pkg`, `omarchy_install`, `seed`, `put`, services) |
 | `modules/NN-name.sh` | One area each, run in `NN` order |
 | `manifest/` | Plain lists of what gets installed: packages, Omarchy installers, web apps, curl-installed apps |
-| `config/` | Files placed on the machine: `hypr/` (Lua overrides + per-host scale), `themes/`, `shibumi/` (saved bar settings), `pacman/` |
+| `config/` | Files placed on the machine: `hypr/` (Lua overrides + per-host scale), `themes/`, `shibumi/` (saved bar settings), `strata/` (seeded file-manager settings), `pacman/` |
 | `assets/icons/` | Icons for web apps and launchers |
 | `tools/` | Helpers run by hand |
 | `docs/manual-steps.txt` | What still needs a human after `setup` |
