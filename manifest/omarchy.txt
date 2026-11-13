@@ -6,7 +6,7 @@
 
 ghostty     terminal ghostty    # Ghostty as the default terminal (SUPER+Return)
 code        editor vscode       # VS Code + libsecret password store + theme
-zed         editor zed          # Zed + omazed theme sync
+zeditor     editor zed          # Zed + omazed theme sync
 slack       service slack       # Slack with live Omarchy theme
 1password   service 1password   # 1Password + CLI + browser extension
 steam       gaming steam        # lib32 GPU drivers first, then Steam
