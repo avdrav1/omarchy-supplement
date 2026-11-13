@@ -67,6 +67,19 @@ sudo -v || die "setup needs sudo; run it in an interactive terminal"
 KEEPALIVE=$!
 trap 'kill $KEEPALIVE 2>/dev/null' EXIT
 
+# An offline Omarchy install leaves only the ISO's offline.db: no repo has a
+# sync database until the first update. yay then misses every repo package,
+# looks each one up in the AUR instead, and gets rate-limited (HTTP 429). Use
+# Omarchy's full -Syu (a bare -Sy followed by installs is a partial upgrade).
+repos=$(awk -F'[][]' '/^\[/ && $2 != "options" {print $2}' /etc/pacman.conf)
+for r in $repos; do
+  if [ ! -s "/var/lib/pacman/sync/$r.db" ]; then
+    step "pacman has no database for [$r]; updating the system first"
+    omarchy-update-system-pkgs || die "system update failed; run omarchy-update, then re-run setup"
+    break
+  fi
+done
+
 sudo_ok() {
   sudo -n true 2>/dev/null && return 0
   warn "sudo credential lapsed; re-authenticating"
