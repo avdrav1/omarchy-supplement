@@ -72,3 +72,35 @@ o.bind("SUPER + SHIFT + K", "Show key bindings", "omarchy-menu-keybindings")
 -- hit one-handed. locked = true so it also works on the lock screen. SUPER+mute
 -- is unbound in stock Omarchy, so no unbind is needed.
 o.bind("SUPER + XF86AudioMute", "Switch audio output", "omarchy-audio-output-switch", { locked = true })
+
+-- Alt+Tab: the Shibumi switcher (config/shell-plugins/av.shibumi-switcher,
+-- installed by modules/70-shibumi.sh). Tab/Shift+Tab move through windows in
+-- most-recently-used order; letting go of Alt focuses the selection. Falls back
+-- to Omarchy's stock cycle_next until the plugin is installed.
+local switcher_manifest = os.getenv("HOME") .. "/.config/omarchy/plugins/av.shibumi-switcher/manifest.json"
+local switcher_file = io.open(switcher_manifest, "r")
+if switcher_file then
+  switcher_file:close()
+  local switcher = "omarchy-shell -q shibumi-switcher "
+  hl.unbind("ALT + TAB")
+  hl.unbind("ALT + SHIFT + TAB")
+  o.bind("ALT + TAB", "Switch windows", switcher .. "next")
+  o.bind("ALT + SHIFT + TAB", "Switch windows (back)", switcher .. "prev")
+  o.bind("ALT + ALT_L", nil, switcher .. "release", { release = true })
+  o.bind("ALT + ALT_R", nil, switcher .. "release", { release = true })
+end
+
+-- Spotlight launcher (mihai.spotlight, installed by modules/70-shibumi.sh).
+-- The backslash is bound by keycode (51) so it works on any layout; ALT+\
+-- covers keyboards whose right-hand modifier sends Right Alt rather than SUPER
+-- (the Keychron). ALT+SPACE is Omarchy's dictation toggle when a dictation
+-- backend is installed, so it is unbound first.
+local spotlight_file = io.open(os.getenv("HOME") .. "/.config/omarchy/plugins/mihai.spotlight/manifest.json", "r")
+if spotlight_file then
+  spotlight_file:close()
+  local spotlight = "omarchy-shell shell summon mihai.spotlight '{}'"
+  hl.unbind("ALT + SPACE")
+  o.bind("ALT + SPACE", "Spotlight launcher", spotlight)
+  o.bind("SUPER + code:51", "Spotlight launcher", spotlight)
+  o.bind("ALT + code:51", "Spotlight launcher", spotlight)
+end

@@ -13,8 +13,11 @@ Omarchy install, so don't add code that migrates old setups.
 
 The alienware host is the reference machine. Something set up there by hand (an
 app, bind, theme) only reaches other machines once it's added here. Shibumi is
-the only Omarchy shell plugin on these machines; don't add third-party widgets
-or shell plugins without being asked.
+the only Omarchy shell plugin suite on these machines, plus two overlays the
+user asked for: our own `av.shibumi-switcher` (ALT+TAB, source in
+`config/shell-plugins/`) and mihai's `mihai.spotlight` launcher, both installed
+by `modules/70-shibumi.sh`. Don't add other third-party widgets or shell
+plugins without being asked.
 
 ## Conventions
 

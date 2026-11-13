@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "av.shibumi-switcher",
+  "name": "Shibumi Switcher",
+  "version": "1.0.0",
+  "author": "av",
+  "license": "MIT",
+  "description": "Alt+Tab window switcher in most-recently-used order, styled to match Shibumi",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Switcher.qml"
+  }
+}

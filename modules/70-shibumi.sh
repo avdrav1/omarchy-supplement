@@ -153,6 +153,48 @@ if ! "$SUITE" status 2>/dev/null | grep -q 'Configured bar: hancore.shibumi'; th
   "$SUITE" activate --yes || true
 fi
 
+# ── Shibumi switcher ─────────────────────────────────────────────────────────
+# Our own Alt+Tab overlay (config/shell-plugins/av.shibumi-switcher), kept out
+# of the suite's hancore.shibumi.* namespace so suite updates never touch it.
+# A third-party plugin is enabled by having an entry in shell.json's plugins[].
+# The Alt+Tab binds in config/hypr/bindings.lua switch over once it's here.
+SWITCHER_ID="av.shibumi-switcher"
+SWITCHER_SRC="$CONFIG/shell-plugins/$SWITCHER_ID"
+while IFS= read -r -d '' f; do
+  put "$PLUGINS_DIR/$SWITCHER_ID/${f#"$SWITCHER_SRC"/}" <"$f"
+done < <(find "$SWITCHER_SRC" -type f -print0)
+enable_plugin() {
+  jq -e --arg id "$1" 'any(.plugins[]?; .id == $id)' "$SHELL_JSON" >/dev/null && return 0
+  local tmp
+  tmp="$(mktemp)"
+  jq --arg id "$1" '.plugins += [{id: $id}]' "$SHELL_JSON" >"$tmp"
+  cat "$tmp" >"$SHELL_JSON"
+  rm -f "$tmp"
+  note "enabled $1"
+}
+enable_plugin "$SWITCHER_ID"
+
+# ── Spotlight ────────────────────────────────────────────────────────────────
+# mihai's Spotlight launcher (ALT+SPACE / SUPER+\ / ALT+\, binds in
+# config/hypr/bindings.lua). It lives in a multi-plugin repo, so only its
+# directory is copied out. Installed once and not auto-updated: it runs
+# commands inside the shell, so read a new version before replacing it
+# (rm -r the plugin dir and re-run this module to take the latest).
+SPOTLIGHT_ID="mihai.spotlight"
+if [ ! -e "$PLUGINS_DIR/$SPOTLIGHT_ID" ]; then
+  tmp="$(mktemp -d)"
+  if git clone --quiet --depth 1 https://github.com/nightdevil00/Plugins.git "$tmp/Plugins" &&
+    [ -f "$tmp/Plugins/$SPOTLIGHT_ID/manifest.json" ]; then
+    cp -a "$tmp/Plugins/$SPOTLIGHT_ID" "$PLUGINS_DIR/$SPOTLIGHT_ID"
+    note "installed $SPOTLIGHT_ID ($(git -C "$tmp/Plugins" rev-parse --short HEAD))"
+  else
+    warn "could not install $SPOTLIGHT_ID"
+  fi
+  rm -rf "$tmp"
+fi
+[ -e "$PLUGINS_DIR/$SPOTLIGHT_ID" ] && enable_plugin "$SPOTLIGHT_ID"
+in_session && hyprctl reload >/dev/null 2>&1 || true
+
 # ── Show Shibumi on the stock bar ────────────────────────────────────────────
 # Shibumi renders *through* the stock bar, so make sure it is shown, and reload
 # the shell to pick up the freshly staged plugins.
