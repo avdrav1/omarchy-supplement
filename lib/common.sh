@@ -87,7 +87,15 @@ omarchy_install() {
   command -v "$cmd" &>/dev/null || [ -x "$HOME/.local/bin/$cmd" ] && return 0
   [ -n "$(find "$HOME/.local/share/applications" -maxdepth 1 -iname "$cmd.desktop" 2>/dev/null)" ] && return 0
   note "omarchy install $*"
-  omarchy install "$@"
+  local rc=0
+  omarchy install "$@" || rc=$?
+  # 127: this Omarchy has no such installer yet (newer channels add them first).
+  # Not an error; it installs on a later run once Omarchy ships it.
+  if ((rc == 127)); then
+    note "skipped: this Omarchy ($(pacman -Q omarchy 2>/dev/null | cut -d' ' -f2)) has no 'omarchy install $*' yet"
+    return 0
+  fi
+  return "$rc"
 }
 
 # ── Services ─────────────────────────────────────────────────────────────────
