@@ -32,8 +32,6 @@ Item {
   property var windows: []
   property int selectedIndex: 0
 
-  Commons.Translations { id: strings; directory: Qt.resolvedUrl("i18n") }
-
   // Theme: the [menu] surface tokens, same as Omarchy's own overlays.
   property color background: Commons.Color.menu.background
   property color foreground: Commons.Color.menu.text
@@ -326,9 +324,9 @@ Item {
                   textFormat: Text.PlainText
                   text: {
                     var m = cell.modelData
-                    var where = m.minimized ? strings.t("switcher.minimized")
-                      : m.special ? strings.t("switcher.special")
-                      : strings.t("switcher.workspace").arg(m.workspaceName || m.workspaceId)
+                    var where = m.minimized ? "Minimized"
+                      : m.special ? "Scratchpad"
+                      : "Workspace %1".arg(m.workspaceName || m.workspaceId)
                     var app = cell.entry && cell.entry.name ? cell.entry.name : m.appClass
                     return app ? app + " · " + where : where
                   }
@@ -356,7 +354,7 @@ Item {
           id: hint
           width: parent.width
           textFormat: Text.PlainText
-          text: strings.t("switcher.hint")
+          text: "Tab next · Shift+Tab back · Q close · Esc cancel"
           color: root.foreground
           opacity: 0.45
           font.family: root.fontFamily
