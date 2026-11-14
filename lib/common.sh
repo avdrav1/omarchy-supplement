@@ -61,6 +61,11 @@ pkg() {
     if pacman -Si "$p" &>/dev/null; then repo+=("$p"); else aur+=("$p"); fi
   done
   if ((${#repo[@]})); then
+    # Stale sync dbs name versions the mirrors have dropped, so pacman fails
+    # on 404s. Refreshing them alone would be a partial upgrade; ask for a full
+    # one instead.
+    find /var/lib/pacman/sync/core.db -mtime -7 2>/dev/null | grep -q . ||
+      die "package lists are over a week old; run 'omarchy update' first"
     note "installing ${repo[*]}"
     sudo pacman -S --noconfirm --needed "${repo[@]}" || rc=1
   fi
